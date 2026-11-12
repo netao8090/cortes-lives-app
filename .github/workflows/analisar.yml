@@ -29,6 +29,10 @@ on:
         description: "Opcional: só aceita VOD que começou depois deste horário (unix)"
         required: false
         default: ""
+      chat_de:
+        description: "Opcional: job de onde vem o chat ao vivo (quando a live é analisada em partes)"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -45,6 +49,7 @@ jobs:
       MODELO: ${{ inputs.modelo }}
       IDIOMA: ${{ inputs.idioma }}
       VOD_DEPOIS_DE: ${{ inputs.depois_de }}
+      CHAT_DE: ${{ inputs.chat_de }}
     steps:
       - uses: actions/checkout@v4
 
@@ -67,10 +72,11 @@ jobs:
 
       - name: Trazer chat capturado ao vivo (se houver)
         run: |
-          if git fetch -q origin "chat-$JOB" 2>/dev/null; then
+          C="${CHAT_DE:-$JOB}"
+          if git fetch -q origin "chat-$C" 2>/dev/null; then
             mkdir -p jobs/"$JOB"
-            git show FETCH_HEAD:jobs/"$JOB"/chat_live.jsonl > jobs/"$JOB"/chat_live.jsonl || true
-            git show FETCH_HEAD:jobs/"$JOB"/live.json > jobs/"$JOB"/live.json || true
+            git show FETCH_HEAD:jobs/"$C"/chat_live.jsonl > jobs/"$JOB"/chat_live.jsonl || true
+            git show FETCH_HEAD:jobs/"$C"/live.json > jobs/"$JOB"/live.json || true
             wc -l jobs/"$JOB"/chat_live.jsonl || true
           fi
 
