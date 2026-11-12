@@ -9,7 +9,7 @@ Lê jobs/J/chat.jsonl e escreve jobs/J/chat_picos.txt:
 """
 import bisect, collections, json, os, re, sys
 
-RISO = re.compile(r"(k{4,}|kkk|haha|hehe|rsrs|lul|kekw|omegalul|lmao|lol|😂|🤣|:kekw:|:lul:|xd\b|jaja)", re.I)
+RISO = re.compile(r"(kkk|(?:k+a+){3,}|(?:a+k+){3,}|(?:k+s+){2,}|haha|hehe|rsrs|lul|kekw|omegalul|lmao|\\blol\\b|😂|🤣|xd\\b|jaja|:\\w*(?:lol|lul|kek|laugh|rir|haha)\\w*:)", re.I)
 HYPE = re.compile(r"(pog|poggers|letsgo|let'?s go|vamo+|bora+|caralho|carai|mds|meu deus|absurdo|insano|"
                   r"brabo|monstro|\bclipa?\b|\bw+\b|\bgg+\b|\bez\b|🔥|😱|😮|🤯|!!+|\?\?+|nossa|que isso|pqp)", re.I)
 TRISTE = re.compile(r"(\bf+\b|\brip\b|\bno{3,}\b|ohno|sadge|😭|💀|\bperdeu\b|\bmorreu\b)", re.I)
