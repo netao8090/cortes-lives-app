@@ -65,7 +65,11 @@ def rosto_fixo(achados, nframes, W):
     bons = [g for g in grupos if len(g["frames"]) >= max(2, 0.25 * nframes)]
     if not bons:
         return None
-    g = max(bons, key=lambda g: (len(g["frames"]), np.median([i[4] for i in g["itens"]])))  # o que aparece em mais quadros
+    # entre os rostos que aparecem com frequência (>= 60% do mais frequente), fica o MAIOR:
+    # retratos de personagem no HUD são menores que o rosto real na webcam
+    topo = max(len(g["frames"]) for g in bons)
+    freq = [g for g in bons if len(g["frames"]) >= 0.6 * topo]
+    g = max(freq, key=lambda g: np.median([i[4] for i in g["itens"]]))
     arr = np.array([i[1:] for i in g["itens"]])
     return np.median(arr, axis=0)  # x, y, w, h
 
