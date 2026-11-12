@@ -50,8 +50,20 @@ def info(url, flat=False):
         raise
 
 
+def kick_api(caminho):
+    """Kick fica atrás do Cloudflare: usa curl_cffi imitando um navegador."""
+    from curl_cffi import requests as cr
+    r = cr.get(f"https://kick.com/api/{caminho}", impersonate="chrome", timeout=40)
+    if r.status_code != 200:
+        sys.exit(f"ERRO_KICK: a Kick respondeu {r.status_code} para {caminho}")
+    return r.json()
+
+
 def resolver(url):
-    """Canal da Twitch -> VOD mais recente (inclui a live em andamento, que já vira VOD)."""
+    """Devolve (url_para_baixar, meta_extra).
+    - canal da Twitch -> VOD mais recente (a live em andamento já vira VOD)
+    - canal da Kick   -> VOD mais recente (Kick só gera VOD quando a live termina)
+    """
     url = url.strip()
     m = re.match(r"https?://(www\.|m\.)?twitch\.tv/([A-Za-z0-9_]+)/?(\?.*)?$", url)
     if m and m.group(2).lower() not in ("videos", "directory"):
@@ -62,23 +74,49 @@ def resolver(url):
             sys.exit(f"ERRO: o canal {canal} não tem VODs públicos (o streamer pode ter desativado).")
         vid = ents[0].get("url") or f"https://www.twitch.tv/videos/{ents[0]['id'].lstrip('v')}"
         print(f"canal {canal} -> VOD mais recente: {vid}", flush=True)
-        return vid
-    return url
+        return vid, {}
+    m = re.match(r"https?://(www\.)?kick\.com/([A-Za-z0-9_-]+)/?(\?.*)?$", url)
+    if m and m.group(2).lower() not in ("video", "browse", "categories"):
+        slug = m.group(2)
+        vids = kick_api(f"v2/channels/{slug}/videos")
+        vids = vids if isinstance(vids, list) else vids.get("data", [])
+        vids = [v for v in vids if not v.get("is_live")]
+        if not vids:
+            sys.exit(f"ERRO: o canal {slug} da Kick não tem VODs públicos ainda (a live atual só vira VOD quando acabar).")
+        v = vids[0]
+        uuid = (v.get("video") or {}).get("uuid")
+        extra = {"titulo": v.get("session_title"), "canal": slug,
+                 "duracao": (v.get("duration") or 0) / 1000 or None, "m3u8": v.get("source")}
+        print(f"canal kick {slug} -> VOD mais recente: {uuid} ({extra['titulo']})", flush=True)
+        return (f"https://kick.com/{slug}/videos/{uuid}" if uuid else v.get("source")), extra
+    return url, {}
+
+
+def info_com_reserva(url, extra):
+    """Tenta o extrator do yt-dlp; na Kick, se falhar, usa a playlist m3u8 direta da API."""
+    try:
+        return url, info(url)
+    except Exception as e:
+        if extra.get("m3u8"):
+            print("extrator falhou, usando m3u8 direto da Kick:", str(e)[:200], flush=True)
+            return extra["m3u8"], info(extra["m3u8"])
+        raise
 
 
 def cmd_audio(a):
     pasta = os.path.join("jobs", a.job)
     os.makedirs(pasta, exist_ok=True)
-    url = resolver(a.url)
-    i = info(url)
+    url, extra = resolver(a.url)
+    url, i = info_com_reserva(url, extra)
     ao_vivo = bool(i.get("is_live") or i.get("live_status") == "is_live")
     if ao_vivo:
         if plataforma(url) != "twitch":
             sys.exit("ERRO: essa live ainda está no ar. No YouTube/Kick, mande o link depois que ela terminar "
                      "(vira VOD). Na Twitch funciona durante a live, mandando o link do canal.")
     ini, fim = seg(a.inicio), seg(a.fim)
-    meta = {"url_original": a.url, "url": url, "titulo": i.get("title"), "canal": i.get("uploader") or i.get("channel"),
-            "duracao": i.get("duration"), "plataforma": plataforma(url), "ao_vivo_ainda": ao_vivo,
+    meta = {"url_original": a.url, "url": url, "titulo": extra.get("titulo") or i.get("title"),
+            "canal": extra.get("canal") or i.get("uploader") or i.get("channel"),
+            "duracao": i.get("duration") or extra.get("duracao"), "plataforma": plataforma(a.url), "ao_vivo_ainda": ao_vivo,
             "offset": ini or 0.0}
     with open(os.path.join(pasta, "meta.json"), "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=1)
@@ -94,15 +132,30 @@ def cmd_audio(a):
 
 
 def cmd_trecho(a):
+    """Baixa o trecho direto do stream na MELHOR qualidade (até 1080p), com corte exato e
+    quase sem perda (CRF 12), para a edição final não sofrer compressão dupla."""
     ini, fim = float(a.inicio), float(a.fim)
-    cmd = ["yt-dlp", "-q", "--no-warnings", "-N", "8",
-           "-f", "bv*[height<=1080]+ba/b[height<=1080]/b",
-           "--download-sections", f"*{ini:.2f}-{fim:.2f}", "--force-keyframes-at-cuts",
-           "--merge-output-format", "mp4", "-o", a.saida, a.url]
-    if a.url.startswith("file://"):  # arquivo local (testes): corta direto com ffmpeg
+    if a.url.startswith("file://"):  # arquivo local (testes)
         subprocess.run(["ffmpeg", "-y", "-v", "error", "-ss", f"{ini:.2f}", "-to", f"{fim:.2f}", "-i", a.url[7:],
-                        "-c:v", "libx264", "-preset", "veryfast", "-crf", "16", "-c:a", "aac", a.saida], check=True)
+                        "-c:v", "libx264", "-preset", "veryfast", "-crf", "12", "-c:a", "aac", a.saida], check=True)
         return
+    o = {"quiet": True, "no_warnings": True,
+         "format": "bv*[height<=1080][vcodec^=avc]+ba/bv*[height<=1080]+ba/b[height<=1080]/b"}
+    with yt_dlp.YoutubeDL(o) as y:
+        i = y.extract_info(a.url, download=False)
+    fmts = i.get("requested_formats") or [i]
+    v = fmts[0]
+    print(f"   fonte: {v.get('format_id')} {v.get('width')}x{v.get('height')} "
+          f"{v.get('fps') or ''}fps {round(v.get('tbr') or 0)}kbps", flush=True)
+    cmd = ["ffmpeg", "-y", "-v", "error"]
+    for f in fmts:
+        hdr = "".join(f"{k}: {val}\r\n" for k, val in (f.get("http_headers") or {}).items())
+        if hdr:
+            cmd += ["-headers", hdr]
+        cmd += ["-ss", f"{ini:.3f}", "-i", f["url"]]
+    cmd += ["-t", f"{fim - ini:.3f}", "-map", "0:v:0", "-map", f"{len(fmts) - 1}:a:0?",
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", "12", "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "192k", a.saida]
     subprocess.run(cmd, check=True)
 
 

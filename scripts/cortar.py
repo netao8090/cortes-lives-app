@@ -133,9 +133,11 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
             hg = H - hc
             gw = int(sh * W / hg) // 2 * 2
             gw = min(gw, sw)
-            vf = (f"[0:v]crop={fc['w']}:{fc['h']}:{fc['x']}:{fc['y']},scale={W}:{hc}:force_original_aspect_ratio=increase,"
-                  f"crop={W}:{hc}[cam];"
-                  f"[0:v]crop={gw}:{sh}:(iw-{gw})/2:0,scale={W}:{hg}[jogo];"
+            # webcam costuma ser pequena na tela: tira blocos de compressão, amplia com lanczos e realça
+            vf = (f"[0:v]crop={fc['w']}:{fc['h']}:{fc['x']}:{fc['y']},deblock=filter=strong:block=8,hqdn3d=1.5:1.5:3:3,"
+                  f"scale={W}:{hc}:force_original_aspect_ratio=increase:flags=lanczos,"
+                  f"crop={W}:{hc},unsharp=7:7:0.9:5:5:0,eq=contrast=1.03:saturation=1.06[cam];"
+                  f"[0:v]crop={gw}:{sh}:(iw-{gw})/2:0,scale={W}:{hg}:flags=lanczos[jogo];"
                   f"[cam][jogo]vstack[v0]")
             # título na emenda câmera/jogo (não cobre o rosto); legenda no meio do jogo
             y_tit, y_leg = hc - 48, int(H * 0.70)
@@ -164,7 +166,7 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
     cmd = ["ffmpeg", "-y", "-v", "error", "-ss", f"{ini:.2f}", "-t", f"{dur:.2f}", "-i", os.path.abspath(video),
            "-filter_complex", vf, "-map", "[v]", "-map", "0:a?",
            "-af", f"afade=t=in:d={fade},afade=t=out:st={dur-fade:.2f}:d={fade}",
-           "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p",
+           "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-pix_fmt", "yuv420p",
            "-r", "30", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", os.path.basename(out)]
     subprocess.run(cmd, check=True, cwd=saida)
 

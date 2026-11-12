@@ -32,7 +32,7 @@ jobs:
       - name: Instalar ferramentas
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg fonts-dejavu-core > /dev/null
-          pip install -q -U yt-dlp opencv-python-headless numpy
+          pip install -q -U "yt-dlp[default,curl-cffi]" opencv-python-headless numpy
           sudo mkdir -p /usr/share/fonts/truetype/google-fonts
           sudo cp fonts/*.ttf /usr/share/fonts/truetype/google-fonts/ && sudo fc-cache -f > /dev/null
 
