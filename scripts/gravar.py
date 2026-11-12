@@ -30,7 +30,7 @@ def resolver(url):
         if not live or not live.get("is_live", True):
             sys.exit(f"ERRO_OFFLINE: {slug} não está ao vivo agora.")
         return {"plataforma": "kick", "canal": slug, "titulo": live.get("session_title"),
-                "m3u8": d.get("playback_url"), "chatroom": (d.get("chatroom") or {}).get("id")}
+                "m3u8": d.get("playback_url"), "chatroom": d.get("id")}
     m = re.match(r"https?://(www\.|m\.)?twitch\.tv/([A-Za-z0-9_]+)", url)
     if m:
         canal = m.group(2).lower()
@@ -52,8 +52,8 @@ class Chat:
         self.n = 0
         self.lock = threading.Lock()
 
-    def add(self, u, msg):
-        t = self.relogio(time.time())
+    def add(self, u, msg, ts=None):
+        t = self.relogio(ts or time.time())
         if t is None:
             return
         with self.lock:
@@ -63,29 +63,33 @@ class Chat:
                 self.f.flush()
 
 
-def chat_kick(chatroom, chat):
-    import websocket  # websocket-client
-    url = "wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=8.4.0&flash=false"
+def chat_kick(canal_id, chat):
+    """Kick: lê a API de mensagens recentes do canal a cada 2 s (o websocket antigo foi desativado)."""
+    import datetime
+    from curl_cffi import requests as cr
+    vistos = set()
+    sess = cr.Session(impersonate="chrome")
     while not PARAR.is_set():
         try:
-            ws = websocket.create_connection(url, timeout=30)
-            ws.send(json.dumps({"event": "pusher:subscribe",
-                                "data": {"auth": "", "channel": f"chatrooms.{chatroom}.v2"}}))
-            while not PARAR.is_set():
+            r = sess.get(f"https://kick.com/api/v2/channels/{canal_id}/messages", timeout=20)
+            msgs = (r.json().get("data") or {}).get("messages") or []
+            for m in reversed(msgs):  # do mais antigo pro mais novo
+                if m.get("id") in vistos:
+                    continue
+                vistos.add(m.get("id"))
+                ts = None
                 try:
-                    raw = ws.recv()
-                except websocket.WebSocketTimeoutException:
-                    ws.send(json.dumps({"event": "pusher:ping", "data": {}})); continue
-                ev = json.loads(raw)
-                if ev.get("event") == "pusher:ping":
-                    ws.send(json.dumps({"event": "pusher:pong", "data": {}}))
-                elif "ChatMessage" in ev.get("event", ""):
-                    d = json.loads(ev["data"]) if isinstance(ev["data"], str) else ev["data"]
-                    msg = re.sub(r"\[emote:\d+:([^\]]+)\]", r":\1:", d.get("content", ""))
-                    chat.add((d.get("sender") or {}).get("username", "?"), msg)
+                    ts = datetime.datetime.fromisoformat(m["created_at"].replace("Z", "+00:00")).timestamp()
+                except Exception:
+                    pass
+                txt = re.sub(r"\[emote:\d+:([^\]]+)\]", r":\1:", m.get("content", ""))
+                chat.add((m.get("sender") or {}).get("username", "?"), txt, ts)
+            if len(vistos) > 20000:
+                vistos = set(list(vistos)[-5000:])
         except Exception as e:
-            print("chat kick reconectando:", str(e)[:120], flush=True)
-            time.sleep(3)
+            print("chat kick erro:", str(e)[:120], flush=True)
+            time.sleep(5)
+        time.sleep(2)
 
 
 def chat_twitch(canal, chat):

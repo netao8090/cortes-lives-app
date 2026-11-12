@@ -36,7 +36,7 @@ def status(url):
                 ts = None
         return {"plataforma": "kick", "canal": slug, "ao_vivo": bool(live) and live.get("is_live", True),
                 "titulo": live.get("session_title"), "inicio_live_ts": ts,
-                "chatroom": (d.get("chatroom") or {}).get("id")}
+                "chatroom": d.get("id")}  # id do canal (usado na API de mensagens)
     m = re.match(r"https?://(www\.|m\.)?twitch\.tv/([A-Za-z0-9_]+)", url)
     if m:
         canal = m.group(2).lower()
@@ -78,9 +78,9 @@ def main():
     json.dump(info, open(os.path.join(jobdir, "live.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
     class ChatTS(gravar.Chat):
-        def add(self, u, msg):
+        def add(self, u, msg, ts=None):
             with self.lock:
-                self.f.write(json.dumps({"ts": round(time.time(), 1), "u": u, "m": msg}, ensure_ascii=False) + "\n")
+                self.f.write(json.dumps({"ts": round(ts or time.time(), 1), "u": u, "m": msg}, ensure_ascii=False) + "\n")
                 self.n += 1
                 if self.n % 20 == 0:
                     self.f.flush()

@@ -31,7 +31,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Instalar
-        run: pip install -q -U "yt-dlp[default,curl-cffi]" websocket-client
+        run: pip install -q -U "yt-dlp[default,curl-cffi]" websocket-client curl-cffi
       - name: Capturar chat até a live acabar
         run: |
           git config user.name "robo-cortes"
