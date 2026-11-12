@@ -52,22 +52,44 @@ def main():
         except Exception as e:
             print(f"   FALHOU download {cid}: {e}", flush=True); falhas.append(cid)
 
-    # 2) layout automático: procura a webcam olhando todos os trechos juntos
+    # 2) layout automático: a webcam é procurada EM CADA CORTE (o streamer pode trocar de cena)
     layout = plano.get("layout", "auto")
+    planos = {}
     if layout == "auto" and baixados:
-        try:
-            import cv2, facecam
-            r = facecam.detectar([b[4] for b in baixados])
-        except Exception as e:
-            print("   detector de facecam falhou:", e); r = None
-        if r:
-            cv2.imwrite(os.path.join(saida, "facecam_detectada.jpg"), r["debug"])
-            plano["layout"] = "facecam"
-            plano["facecam"] = {k: r[k] for k in ("x", "y", "w", "h")}
-            print(f"   webcam encontrada ({r['metodo']}): {plano['facecam']}", flush=True)
-        else:
-            plano["layout"] = "blur"
-            print("   webcam não encontrada -> layout com fundo desfocado", flush=True)
+        import cv2, facecam
+        geral = None
+        for c, ini, fim, base, bruto in baixados:
+            cid = str(c.get("id"))
+            p2 = dict(plano)
+            try:
+                r = facecam.detectar([bruto])
+            except Exception as e:
+                print("   detector falhou:", e); r = None
+            if r is None:
+                if geral is None:
+                    try:
+                        geral = facecam.detectar([b[4] for b in baixados]) or False
+                    except Exception:
+                        geral = False
+                r = geral or None
+            if r and r["metodo"] == "tela_cheia":
+                p2["layout"] = "retrato"; p2["retrato_cx"] = r["cx"]
+            elif r:
+                p2["layout"] = "facecam"; p2["facecam"] = {k: r[k] for k in ("x", "y", "w", "h")}
+            else:
+                p2["layout"] = "blur"
+            if r:
+                cv2.imwrite(os.path.join(saida, f"facecam_{cid}.jpg"), r["debug"])
+            print(f"   corte {cid}: layout {p2['layout']} {p2.get('facecam', '')}", flush=True)
+            planos[cid] = p2
+    # um corte pode forçar o próprio layout no cortes.json ("layout", "facecam", "zoom")
+    for c in plano["cortes"]:
+        cid = str(c.get("id"))
+        base_p = planos.get(cid, dict(plano))
+        for k in ("layout", "facecam", "zoom", "retrato_cx"):
+            if k in c:
+                base_p[k] = c[k]
+        planos[cid] = base_p
 
     # 3) renderiza
     for c, ini, fim, base, bruto in baixados:
@@ -80,7 +102,7 @@ def main():
                     g = dict(f); g["start"] -= base; g["end"] -= base; t2.append(g)
             sw, sh = cortar.sondar(bruto)
             for fo in formatos:
-                print("   ok", cortar.render(bruto, c2, plano, t2, saida, fo, sw, sh), flush=True)
+                print("   ok", cortar.render(bruto, c2, planos.get(cid, plano), t2, saida, fo, sw, sh), flush=True)
         except Exception as e:  # um corte com erro não derruba os outros
             print(f"   FALHOU corte {cid}: {e}", flush=True); falhas.append(cid)
 

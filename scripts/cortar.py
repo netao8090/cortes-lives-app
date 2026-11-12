@@ -126,7 +126,14 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
 
     if fmt_out == "vertical":
         W, H = 1080, 1920
-        if plano.get("layout") == "facecam" and plano.get("facecam"):
+        if plano.get("layout") == "retrato":
+            # câmera em tela cheia: recorte vertical centrado no streamer
+            cw = int(sh * W / H) // 2 * 2
+            cx = int(plano.get("retrato_cx", sw // 2))
+            x0 = max(0, min(sw - cw, cx - cw // 2))
+            vf = f"[0:v]crop={cw}:{sh}:{x0}:0,scale={W}:{H}:flags=lanczos,unsharp=5:5:0.5:5:5:0[v0]"
+            y_tit, y_leg = 230, int(H * 0.72)
+        elif plano.get("layout") == "facecam" and plano.get("facecam"):
             fc = plano["facecam"]
             # altura da câmera segue o formato da janela da webcam (sem distorcer)
             hc = int(min(max(W * fc["h"] / max(fc["w"], 1), 520), 820)) // 2 * 2

@@ -65,7 +65,7 @@ def rosto_fixo(achados, nframes, W):
     bons = [g for g in grupos if len(g["frames"]) >= max(2, 0.25 * nframes)]
     if not bons:
         return None
-    g = max(bons, key=lambda g: len(g["frames"]) * np.median([i[4] for i in g["itens"]]))
+    g = max(bons, key=lambda g: (len(g["frames"]), np.median([i[4] for i in g["itens"]])))  # o que aparece em mais quadros
     arr = np.array([i[1:] for i in g["itens"]])
     return np.median(arr, axis=0)  # x, y, w, h
 
@@ -108,22 +108,74 @@ def moldura(frames, face):
         c, n = max(perfil, key=lambda t: t[1])
         return c if n >= 40 else borda
 
-    bE = 0 if cx - lim <= 0 else int(cx - lim)
-    bD = W if cx + lim >= W else int(cx + lim)
-    bC = 0 if cy - lim <= 0 else int(cy - lim)
-    bB = H if cy + lim >= H else int(cy + lim)
-    # 1) laterais usando a altura do rosto
-    esq = melhor(perfil_v(fx - 2, fx - lim, -1, fy, fy + 0.9 * fh), bE)
-    dir_ = melhor(perfil_v(fx + fw + 2, fx + fw + lim, 1, fy, fy + 0.9 * fh), bD)
-    # 2) topo/base usando a LARGURA INTEIRA da janela (contorno do fone/cabeça não cobre tudo)
-    m = 0.08 * (dir_ - esq)
-    cima = melhor(perfil_h(fy - 2, fy - lim, -1, esq + m, dir_ - m), bC)
-    baixo = melhor(perfil_h(fy + 0.8 * fh, fy + fh + lim, 1, esq + m, dir_ - m), bB)
-    # 3) refina laterais usando a altura inteira
-    m = 0.08 * (baixo - cima)
-    esq = melhor(perfil_v(fx - 2, fx - lim, -1, cima + m, baixo - m), esq)
-    dir_ = melhor(perfil_v(fx + fw + 2, fx + fw + lim, 1, cima + m, baixo - m), dir_)
-    return int(esq), int(cima), int(dir_ - esq), int(baixo - cima)
+    def picos(perfil, borda_tela, perto):
+        """Até 4 linhas fortes (máximos locais) + a borda da tela, se estiver perto."""
+        cands = []
+        for i, (c, n) in enumerate(perfil):
+            viz = [x[1] for x in perfil[max(0, i - 4):i + 5]]
+            if n >= 18 and n == max(viz):
+                cands.append((c, n))
+        cands = sorted(cands, key=lambda t: -t[1])[:5]
+        if perto:
+            cands.append((borda_tela, 60.0))
+        return cands or [(None, 0.0)]
+
+    lim_h = 6.5 * fw
+    lim_v = 4.0 * fh
+    # 1) candidatos das laterais (altura do rosto) e de topo/base (largura do rosto)
+    L = picos(perfil_v(fx - 2, fx - lim_h, -1, fy, fy + 0.9 * fh), 0, fx - lim_h <= 0)
+    R = picos(perfil_v(fx + fw + 2, fx + fw + lim_h, 1, fy, fy + 0.9 * fh), W, fx + fw + lim_h >= W)
+    T = picos(perfil_h(fy - 2, fy - lim_v, -1, fx - fw, fx + 2 * fw), 0, fy - lim_v <= 0)
+    B = picos(perfil_h(fy + 0.8 * fh, fy + fh + lim_v, 1, fx - fw, fx + 2 * fw), H, fy + fh + lim_v >= H)
+
+    if os.environ.get("FC_DEBUG"):
+        print("L", L, "\nR", R, "\nT", T, "\nB", B)
+    # 2) escolhe a combinação com bordas fortes E formato de webcam (16:9 ou 4:3)
+    import math
+    melhor_comb, melhor_nota = None, -1e9
+    for l, nl in L:
+        for r, nr in R:
+            for t, nt in T:
+                if None in (l, r, t):
+                    continue
+                # base: as linhas achadas + as posições que dariam formato 16:9 / 4:3
+                extras = [(int(t + (r - l) / a), 0.0) for a in (16 / 9, 4 / 3) if t + (r - l) / a <= H]
+                for bb, nb in B + extras:
+                    if bb is None:
+                        continue
+                    w, h = r - l, bb - t
+                    if w < 1.5 * fw or h < 1.3 * fh:
+                        continue
+                    # a caixa precisa conter o rosto com folga
+                    if l > fx - 0.3 * fw or r < fx + 1.3 * fw or t > fy - 0.15 * fh or bb < fy + 0.85 * fh:
+                        continue
+                    asp = w / h
+                    desvio = min(abs(math.log(asp / (16 / 9))), abs(math.log(asp / (4 / 3))))
+                    # confirma as bordas ao longo da caixa inteira (não só perto do rosto)
+                    conf = 0.0
+                    for c in (l, r):
+                        if 0 < c < W:
+                            col = Ex[int(t):int(bb), max(0, c - 1):c + 2].max(axis=1)
+                            conf += float(np.percentile(col, 20)) if len(col) else 0
+                        else:
+                            conf += 60
+                    for rr in (t, bb):
+                        if 0 < rr < H:
+                            row = Ey[max(0, rr - 1):rr + 2, int(l):int(r)].max(axis=0)
+                            conf += float(np.percentile(row, 20)) if row.size else 0
+                        else:
+                            conf += 60
+                    # rosto costuma ocupar 10-30% da largura da webcam
+                    prop = fw / w
+                    pen_rosto = 400 * max(0.0, math.log(0.10 / prop)) + 400 * max(0.0, math.log(prop / 0.35))
+                    nota = conf - 400 * desvio - pen_rosto
+                    if os.environ.get("FC_DEBUG") and nota > melhor_nota - 50:
+                        print("  comb", (l, t, w, h), round(conf), round(desvio, 2), round(nota))
+                    if nota > melhor_nota:
+                        melhor_comb, melhor_nota = (l, t, w, h), nota
+    if melhor_comb is None:
+        return int(fx - fw), int(fy - fh), int(3 * fw), int(3 * fh)
+    return tuple(int(v) for v in melhor_comb)
 
 
 def heuristica(face, W, H):
@@ -142,8 +194,12 @@ def detectar(videos, n=30):
     face = rosto_fixo(rostos(frames), len(frames), W)
     if face is None:
         return None
-    x, y, w, h = moldura(frames, face)
     fx, fy, fw, fh = face
+    if fh > 0.12 * H:  # rosto enorme = cena de câmera em tela cheia (não é janelinha de webcam)
+        dbg = frames[len(frames) // 2].copy()
+        return {"x": 0, "y": 0, "w": W, "h": H, "metodo": "tela_cheia", "W": W, "H": H, "debug": dbg,
+                "cx": int(fx + fw / 2)}
+    x, y, w, h = moldura(frames, face)
     ok = (w > 1.3 * fw and h > 1.2 * fh and 0.6 < w / max(h, 1) < 2.6 and w * h < 0.3 * W * H
           and x <= fx and y <= fy + 0.3 * fh and x + w >= fx + fw and y + h >= fy + 0.7 * fh)
     metodo = "moldura"
