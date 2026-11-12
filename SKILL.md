@@ -34,10 +34,12 @@ O usuário manda **só um link** (live, VOD ou canal da Twitch). Quem baixa e re
    - Prefira cortes com fala + `!!`/pico próximos.
 5. **Escrever** `jobs/<job>/cortes.json`:
    ```json
-   {"formato": "vertical", "layout": "blur", "zoom": 1.3, "legenda": true,
+   {"formato": "vertical", "layout": "auto", "legenda": true,
     "cortes": [{"id": "01", "inicio": "1:02:31", "fim": "1:03:05", "titulo": "ELE NÃO ESPERAVA ISSO"}]}
    ```
-   - `formato`: vertical (padrão), horizontal ou ambos. `layout: facecam` + `"facecam": {"x","y","w","h"}` (pixels do vídeo original) põe a câmera do streamer em cima.
+   - `formato`: vertical (padrão), horizontal ou ambos.
+   - `layout`: `auto` (padrão) acha a webcam do streamer sozinho e põe câmera em cima + jogo embaixo; se não achar, usa jogo inteiro com fundo desfocado. `blur` força o fundo desfocado (`zoom` 1.0–1.5). `facecam` + `"facecam": {"x","y","w","h"}` (pixels do vídeo) força uma caixa manual.
+   - Depois de renderizar, confira `facecam_detectada.jpg` na Release (caixa amarela = webcam achada). Se errou, refaça com `facecam` manual usando as coordenadas certas.
    - `titulo` aparece no vídeo: curto (até ~35 caracteres), em CAIXA ALTA, **sem emoji**.
    E `jobs/<job>/publicacao.md`, com um bloco por corte: título para YouTube/TikTok (até 70 caracteres, com gancho), descrição de 1–2 linhas com **crédito obrigatório** ("Créditos: <canal> – <link original>"), hashtags (#gta6 #gtavi #shorts #cortes + do streamer), ideia de thumbnail.
 6. **Renderizar:** commit + push dos dois arquivos (`git pull --rebase` antes), depois

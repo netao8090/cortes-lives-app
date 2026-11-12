@@ -128,7 +128,8 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
         W, H = 1080, 1920
         if plano.get("layout") == "facecam" and plano.get("facecam"):
             fc = plano["facecam"]
-            hc = 700
+            # altura da câmera segue o formato da janela da webcam (sem distorcer)
+            hc = int(min(max(W * fc["h"] / max(fc["w"], 1), 520), 820)) // 2 * 2
             hg = H - hc
             gw = int(sh * W / hg) // 2 * 2
             gw = min(gw, sw)
@@ -136,7 +137,8 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
                   f"crop={W}:{hc}[cam];"
                   f"[0:v]crop={gw}:{sh}:(iw-{gw})/2:0,scale={W}:{hg}[jogo];"
                   f"[cam][jogo]vstack[v0]")
-            y_tit, y_leg = 40, hc + 60
+            # título na emenda câmera/jogo (não cobre o rosto); legenda no meio do jogo
+            y_tit, y_leg = hc - 48, int(H * 0.70)
         else:
             z = float(plano.get("zoom", 1.3))
             fh = int(W / (sw / sh) * z) // 2 * 2
