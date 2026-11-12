@@ -1,0 +1,50 @@
+name: 2 - Renderizar cortes
+
+on:
+  workflow_dispatch:
+    inputs:
+      job:
+        description: "Nome do trabalho (pasta em jobs/ com cortes.json)"
+        required: true
+      so:
+        description: "Opcional: só estes ids (ex.: 01,03)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  renderizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      JOB: ${{ inputs.job }}
+      SO: ${{ inputs.so }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar ferramentas
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg fonts-dejavu-core > /dev/null
+          pip install -q -U yt-dlp
+          sudo mkdir -p /usr/share/fonts/truetype/google-fonts
+          sudo cp fonts/*.ttf /usr/share/fonts/truetype/google-fonts/ && sudo fc-cache -f > /dev/null
+
+      - name: Baixar trechos e renderizar
+        run: python scripts/renderizar.py --job "$JOB" --so "$SO"
+
+      - name: Publicar cortes (Release)
+        run: |
+          cp jobs/"$JOB"/publicacao.md saida/"$JOB"/ 2>/dev/null || true
+          if gh release view "$JOB" > /dev/null 2>&1; then
+            gh release upload "$JOB" saida/"$JOB"/* --clobber
+          else
+            gh release create "$JOB" saida/"$JOB"/* --title "Cortes: $JOB" --notes-file jobs/"$JOB"/publicacao.md \
+              || gh release create "$JOB" saida/"$JOB"/* --title "Cortes: $JOB" --notes "Cortes gerados automaticamente."
+          fi

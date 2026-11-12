@@ -1,0 +1,74 @@
+name: 1 - Analisar live
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Link da live/VOD (Twitch, YouTube, Kick) ou do canal da Twitch"
+        required: true
+      job:
+        description: "Nome do trabalho (ex.: 2026-11-11-streamer)"
+        required: true
+      inicio:
+        description: "Opcional: analisar a partir de (h:mm:ss)"
+        required: false
+        default: ""
+      fim:
+        description: "Opcional: analisar até (h:mm:ss)"
+        required: false
+        default: ""
+      modelo:
+        description: "small (melhor) ou base (mais rápido)"
+        required: false
+        default: "small"
+
+permissions:
+  contents: write
+
+jobs:
+  analisar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    env:
+      URL: ${{ inputs.url }}
+      JOB: ${{ inputs.job }}
+      INI: ${{ inputs.inicio }}
+      FIM: ${{ inputs.fim }}
+      MODELO: ${{ inputs.modelo }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar ferramentas
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+          pip install -q -U yt-dlp sherpa-onnx soundfile numpy
+
+      - uses: actions/cache@v4
+        with:
+          path: models
+          key: modelos-${{ inputs.modelo }}-v1
+
+      - name: Baixar modelos de fala
+        run: bash scripts/setup_models.sh "$MODELO"
+
+      - name: Baixar áudio da live
+        run: python scripts/baixar.py audio "$URL" --job "$JOB" --inicio "$INI" --fim "$FIM"
+
+      - name: Transcrever
+        run: |
+          OFF=$(python -c "import json;print(json.load(open('jobs/$JOB/meta.json'))['offset'])")
+          python scripts/transcrever.py jobs/"$JOB"/audio.* --saida jobs/"$JOB" --modelo "$MODELO" --offset "$OFF"
+          rm -f jobs/"$JOB"/audio.*
+
+      - name: Salvar resultado no repositório
+        run: |
+          git config user.name "robo-cortes"
+          git config user.email "robo-cortes@users.noreply.github.com"
+          git add jobs/"$JOB"
+          git commit -m "analise: $JOB" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && exit 0; sleep $((i*5)); done
+          exit 1
