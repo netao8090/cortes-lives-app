@@ -1,0 +1,58 @@
+name: 3 - Postar cortes
+
+on:
+  workflow_dispatch:
+    inputs:
+      job:
+        description: "Nome do trabalho (mesmo nome da Release dos cortes)"
+        required: true
+      so:
+        description: "Opcional: só estes ids (ex.: 01,03)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: postar-${{ inputs.job }}
+  cancel-in-progress: false
+
+jobs:
+  postar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    env:
+      JOB: ${{ inputs.job }}
+      SO: ${{ inputs.so }}
+      GH_TOKEN: ${{ github.token }}
+      UPLOADPOST_API_KEY: ${{ secrets.UPLOADPOST_API_KEY }}
+      UPLOADPOST_USER: ${{ vars.UPLOADPOST_USER }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Baixar os cortes da Release
+        run: |
+          pip install -q requests
+          mkdir -p saida/"$JOB"
+          if [ -n "$UPLOADPOST_API_KEY" ]; then
+            gh release download "$JOB" -p 'corte_*_vertical.mp4' -D saida/"$JOB" --clobber
+            ls -la saida/"$JOB"
+          fi
+
+      - name: Postar / agendar
+        run: python scripts/postar.py --job "$JOB" --so "$SO"
+
+      - name: Salvar o que foi postado
+        if: always()
+        run: |
+          [ -f jobs/"$JOB"/postagens.json ] || exit 0
+          git config user.name "robo-cortes"
+          git config user.email "robo-cortes@users.noreply.github.com"
+          git add jobs/"$JOB"/postagens.json
+          git commit -m "postagem: $JOB" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && exit 0; sleep $((i*5)); done

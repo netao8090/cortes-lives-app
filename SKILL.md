@@ -1,13 +1,13 @@
 ---
 name: cortes-de-live
-description: Faz cortes virais de lives da Kick, Twitch ou YouTube só com o link do canal ou do VOD — inclusive de lives que ainda estão no ar, usando o chat como termômetro de euforia. O trabalho pesado roda de graça no GitHub Actions do próprio usuário. Use quando pedirem cortes, clipes ou shorts de uma live.
+description: Faz cortes virais de lives da Kick, Twitch ou YouTube só com o link do canal ou do VOD — inclusive de lives que ainda estão no ar, usando o chat como termômetro de euforia — e posta sozinho no TikTok, Reels e Shorts com legenda e hashtags, espalhando nos horários de pico. O trabalho pesado roda de graça no GitHub Actions do próprio usuário. Use quando pedirem cortes, clipes ou shorts de uma live, ou para postar cortes.
 ---
 
 # Cortes de live (Kick / Twitch / YouTube)
 
 O usuário manda **só um link**. Quem baixa, transcreve e renderiza é um "robô" no **GitHub Actions do próprio usuário** (o ambiente do Claude não acessa Kick/Twitch/YouTube). Quem **escolhe os momentos é o Claude**, lendo a transcrição, os picos de voz e os picos do chat. O chat é só termômetro: **nunca aparece no vídeo**.
 
-Resultado: cortes verticais 9:16 em 1080p com a webcam do streamer detectada sozinha (câmera em cima + jogo embaixo, ou retrato quando a câmera está em tela cheia), título no vídeo, legenda palavra por palavra e um `publicacao.md` com título, descrição com crédito e hashtags.
+Resultado: cortes verticais 9:16 em 1080p com a webcam do streamer detectada sozinha (câmera em cima + jogo embaixo, ou retrato quando a câmera está em tela cheia), título no vídeo, legenda palavra por palavra e um `publicacao.md` com título, descrição com crédito e hashtags. Se a postagem automática estiver ligada, os cortes já saem **postados/agendados** no TikTok, Instagram Reels e YouTube Shorts (o que estiver conectado), sem o usuário escolher nada.
 
 Fale com o usuário em linguagem simples, sem jargão técnico. Ele não precisa saber de workflows, ramos ou API.
 
@@ -36,6 +36,15 @@ Os workflows do robô:
 | `renderizar.yml` | baixa **só os trechos escolhidos** em 1080p, detecta a webcam **em cada corte**, renderiza e publica numa Release com o nome do job | `job`, `so` (ex.: `01,03`) |
 | `chat.yml` | captura o chat de uma live **ao vivo** até ela acabar (salva no ramo `chat-<job>` a cada 10 min; limite ~5h40 por execução) | `url` (canal), `job`, `max_minutos` |
 | `gravar.yml` | grava vídeo+chat de uma live ao vivo e renderiza do próprio arquivo (use só se o VOD não ficar disponível) | `url`, `job`, `minutos`, `espera` |
+| `postar.yml` | baixa os verticais da Release e posta/agenda nas redes conectadas no Upload-Post, com os textos de `postagem.json`; rodar de novo não duplica | `job`, `so` |
+
+### Postagem automática (configuração única, feita pelo usuário)
+Só é preciso uma vez. Se o usuário ainda não fez, explique em 3 passos curtos, sem jargão:
+1. Criar conta em https://upload-post.com e, no painel, conectar TikTok, Instagram (conta profissional/criador) e YouTube.
+2. Copiar a chave da API no painel do Upload-Post.
+3. No GitHub: repositório → Settings → Secrets and variables → Actions → **New repository secret**, nome `UPLOADPOST_API_KEY`, colar a chave. (Link direto: `https://github.com/<usuario>/<repositorio>/settings/secrets/actions/new`.)
+
+Nunca peça a chave no chat nem a coloque em arquivos do repositório; ela só vai no segredo do GitHub. Plano grátis do Upload-Post: 10 envios/mês, sem TikTok e sem agendamento (o robô se vira: posta nas outras redes, espaçando sozinho). TikTok e agendamento exigem plano pago. Se o usuário tiver mais de um perfil no Upload-Post, ele pode criar a *variável* (não segredo) `UPLOADPOST_USER` com o nome do perfil; senão o robô usa o primeiro com contas conectadas.
 
 ---
 
@@ -88,13 +97,38 @@ Critérios de um corte viral:
      `titulo` aparece no vídeo: até ~35 caracteres, CAIXA ALTA, sem emoji. `formato`: vertical, horizontal ou ambos.
      Um corte pode forçar o próprio layout: `"layout": "facecam", "facecam": {"x":0,"y":0,"w":512,"h":288}` (pixels do vídeo original), `"layout": "retrato"` ou `"layout": "blur"`.
    - `publicacao.md`: por corte, título para YouTube/TikTok (≤70 caracteres, com gancho; emoji pode), descrição de 1-2 linhas com **crédito obrigatório** ("Créditos: <canal> – <link do canal>"), hashtags e ideia de thumbnail.
+   - `postagem.json`: os mesmos textos no formato que o robô posta. **Sempre crie**, mesmo sem a postagem configurada:
+     ```json
+     {"cortes": [{"id": "01",
+       "titulo": "Faltou 2 SEGUNDOS pro recorde… e o yuri22 surtou 😱",
+       "legenda": "Faltou 2 segundos pro recorde 😱 Quem aguentaria? Créditos: yuri22 (kick.com/yuri22) #yuri22 #gta #kick #cortes #shorts",
+       "descricao": "Na maratona pra zerar todos os GTAs, o desafio escapa por um triz.\nCréditos: yuri22 – https://kick.com/yuri22"}]}
+     ```
+     - `titulo` → título do YouTube Shorts (≤70, gancho forte).
+     - `legenda` → legenda do TikTok/Reels: 1 frase de gancho ou pergunta que puxe comentário + crédito curto + 3-5 hashtags (canal, jogo, plataforma, `#cortes`, `#shorts`). Até ~150 caracteres antes das hashtags.
+     - `descricao` → descrição do YouTube com o crédito completo (as hashtags da legenda são acrescentadas sozinhas).
+     - Opcionais (não pergunte ao usuário; use o padrão): `horarios` (padrão `["12:00","15:00","18:00","21:00"]`, 1 corte por horário, a partir do próximo), `fuso` (padrão `America/Sao_Paulo`), `redes` (padrão: todas conectadas). Ordene os cortes do mais forte para o mais fraco — o mais forte sai primeiro.
 2. Commit, `git pull --rebase`, push, dispare `renderizar.yml` (3-6 min).
 3. Baixe a Release e **confira 1-2 quadros de cada corte** (ffmpeg → png → Read) e os `facecam_<id>.jpg` (caixa amarela = webcam achada):
    - A caixa pegou só a webcam? O título não cobre o rosto? A legenda está limpa?
    - Se errou a webcam: refaça só aquele corte com `facecam` manual (copie a caixa de outro corte da mesma live, que costuma ser igual) usando `inputs[so]=<id>`.
-4. Entregue com `SendUserFile` (os .mp4 + `publicacao.md`) e uma tabela curta: corte, tempo na live, por que é viral.
+4. Entregue com `SendUserFile` (os .mp4 + `publicacao.md`) e uma tabela curta: corte, tempo na live, por que é viral — e siga direto para o passo 5, sem perguntar.
+
+## 5. Postar sozinho (automático, sem perguntar)
+
+Assim que os cortes passarem na conferência do passo 4 (só os aprovados; um corte com webcam errada só vai depois de refeito), dispare `postar.yml` com `inputs[job]=<job>` (e `inputs[so]` se for só parte). O usuário pediu automação total: **não pergunte quais redes, horários ou legendas** — use os padrões.
+
+Espere terminar e leia o log (`grep -E "POSTADO|AGENDADO|ERRO|AVISO|perfil="`):
+- `AGENDADO` / `POSTADO` → na entrega, acrescente uma coluna "quando sai" (ou o link) na tabela.
+- `AVISO_SEM_CHAVE` → postagem ainda não configurada: entregue normalmente e, **uma vez por conversa**, ofereça em uma linha os 3 passos da configuração única (seção 0).
+- `AVISO_SEM_REDES` / `AVISO_RECONECTAR` → peça para conectar/reconectar a conta no painel do Upload-Post e depois redispare `postar.yml` (não duplica o que já foi).
+- `AVISO_SEM_AGENDAMENTO` → o plano não agenda: o robô posta agora e espaça sozinho (o run fica aberto algumas horas; não precisa esperar — agende uma checagem com `send_later` se quiser os links).
+- `AVISO ... sem tiktok` → o plano grátis não posta no TikTok; avise uma vez que precisa do plano pago para isso.
+- `ERRO_LIMITE` → bateu o limite do plano/rede; redispare amanhã (o que foi postado fica marcado em `jobs/<job>/postagens.json`).
+- Outro `ERRO_POSTAGEM` → leia a mensagem, corrija o `postagem.json` se for texto (ex.: título longo) e redispare só aquele corte.
 
 ## Avisos ao usuário (uma vez, sem sermão)
 - Cortar live de terceiros sem permissão pode gerar strike/desmonetização; muitos streamers liberam cortes com crédito.
 - Em repositório público, as transcrições e os cortes ficam visíveis; os vídeos completos das lives não ficam salvos.
 - A legenda vem da transcrição automática e erra em trechos de gritaria; dá para revisar antes de renderizar.
+- Com a postagem automática ligada, os cortes vão ao ar sem revisão dele; se quiser ver antes, basta dizer "não posta ainda" e o passo 5 fica para quando ele mandar.
