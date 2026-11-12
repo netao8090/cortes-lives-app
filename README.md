@@ -7,16 +7,20 @@ Robô de cortes de live: você manda **só o link** (Twitch, YouTube ou Kick) e 
 2. **Escolher** – o Claude lê a transcrição e escreve `jobs/<nome>/cortes.json` com os melhores momentos.
 3. **Renderizar** (`.github/workflows/renderizar.yml`) – baixa **só os trechos escolhidos** em até 1080p, monta o vídeo vertical 9:16 com legenda e publica tudo numa **Release** com o nome do trabalho.
 
-4. **Postar** (`.github/workflows/postar.yml`) – posta ou agenda cada corte no TikTok, Instagram Reels e YouTube Shorts (as contas conectadas no [Upload-Post](https://upload-post.com)), com a legenda, título e hashtags que o Claude escreve em `jobs/<nome>/postagem.json`. Um corte por horário de pico (12h, 15h, 18h, 21h de Brasília). Rodar de novo não posta duas vezes.
+4. **Postar** (`.github/workflows/postar.yml`) – agenda cada corte no **Instagram Reels** (API oficial da Meta) e no **TikTok** (API grátis do Buffer), com a legenda e as hashtags que o Claude escreve em `jobs/<nome>/postagem.json`. Um corte por horário de pico (12h, 15h, 18h, 21h de Brasília); o Instagram sai pela fila que o workflow roda de hora em hora. Tudo grátis, e rodar de novo não posta duas vezes.
 
 Os cortes ficam em **Releases** (lado direito da página do repositório).
 
-### Ligar a postagem automática (uma vez só)
-1. Crie conta no [Upload-Post](https://upload-post.com) e conecte TikTok, Instagram e YouTube.
-2. Copie a chave da API no painel deles.
-3. Aqui no GitHub: **Settings → Secrets and variables → Actions → New repository secret**, nome `UPLOADPOST_API_KEY`, cole a chave.
+### Ligar a postagem automática (uma vez só, grátis)
+Segredos em **Settings → Secrets and variables → Actions → New repository secret**:
 
-No plano grátis do Upload-Post não tem TikTok nem agendamento (o robô posta nas outras redes e espaça sozinho); o plano pago libera os dois.
+| Segredo | De onde vem |
+|---|---|
+| `IG_TOKEN` | developers.facebook.com → seu app → Instagram → *Configuração da API com login do Instagram* → Gerar token (conta do Instagram profissional) |
+| `BUFFER_API_KEY` | buffer.com (grátis) com o TikTok conectado → publish.buffer.com/settings/api |
+| `GH_PAT` (opcional) | token *fine-grained* do GitHub só deste repositório com **Secrets: Read and write** — renova o `IG_TOKEN` sozinho (ele dura 60 dias) |
+
+Depois rode **3 - Postar cortes** com `teste = sim` para conferir as contas sem publicar nada.
 
 ## Usar pelo Claude
 Mande o link e diga "faz os cortes". Exemplos:

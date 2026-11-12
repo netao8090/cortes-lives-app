@@ -1,13 +1,13 @@
 ---
 name: cortes-de-live
-description: Faz cortes virais de lives da Kick, Twitch ou YouTube só com o link do canal ou do VOD — inclusive de lives que ainda estão no ar, usando o chat como termômetro de euforia — e posta sozinho no TikTok, Reels e Shorts com legenda e hashtags, espalhando nos horários de pico. O trabalho pesado roda de graça no GitHub Actions do próprio usuário. Use quando pedirem cortes, clipes ou shorts de uma live, ou para postar cortes.
+description: Faz cortes virais de lives da Kick, Twitch ou YouTube só com o link do canal ou do VOD — inclusive de lives que ainda estão no ar, usando o chat como termômetro de euforia — e posta sozinho no Instagram Reels e no TikTok com legenda e hashtags (de graça), espalhando nos horários de pico. O trabalho pesado roda de graça no GitHub Actions do próprio usuário. Use quando pedirem cortes, clipes ou shorts de uma live, ou para postar cortes.
 ---
 
 # Cortes de live (Kick / Twitch / YouTube)
 
 O usuário manda **só um link**. Quem baixa, transcreve e renderiza é um "robô" no **GitHub Actions do próprio usuário** (o ambiente do Claude não acessa Kick/Twitch/YouTube). Quem **escolhe os momentos é o Claude**, lendo a transcrição, os picos de voz e os picos do chat. O chat é só termômetro: **nunca aparece no vídeo**.
 
-Resultado: cortes verticais 9:16 em 1080p com a webcam do streamer detectada sozinha (câmera em cima + jogo embaixo, ou retrato quando a câmera está em tela cheia), título no vídeo, legenda palavra por palavra e um `publicacao.md` com título, descrição com crédito e hashtags. Se a postagem automática estiver ligada, os cortes já saem **postados/agendados** no TikTok, Instagram Reels e YouTube Shorts (o que estiver conectado), sem o usuário escolher nada.
+Resultado: cortes verticais 9:16 em 1080p com a webcam do streamer detectada sozinha (câmera em cima + jogo embaixo, ou retrato quando a câmera está em tela cheia), título no vídeo, legenda palavra por palavra e um `publicacao.md` com título, descrição com crédito e hashtags. Se a postagem automática estiver ligada, os cortes já saem **agendados** no Instagram Reels (API oficial da Meta) e no TikTok (API grátis do Buffer), sem o usuário escolher nada.
 
 Fale com o usuário em linguagem simples, sem jargão técnico. Ele não precisa saber de workflows, ramos ou API.
 
@@ -36,15 +36,24 @@ Os workflows do robô:
 | `renderizar.yml` | baixa **só os trechos escolhidos** em 1080p, detecta a webcam **em cada corte**, renderiza e publica numa Release com o nome do job | `job`, `so` (ex.: `01,03`) |
 | `chat.yml` | captura o chat de uma live **ao vivo** até ela acabar (salva no ramo `chat-<job>` a cada 10 min; limite ~5h40 por execução) | `url` (canal), `job`, `max_minutos` |
 | `gravar.yml` | grava vídeo+chat de uma live ao vivo e renderiza do próprio arquivo (use só se o VOD não ficar disponível) | `url`, `job`, `minutos`, `espera` |
-| `postar.yml` | baixa os verticais da Release e posta/agenda nas redes conectadas no Upload-Post, com os textos de `postagem.json`; rodar de novo não duplica | `job`, `so` |
+| `postar.yml` | agenda os cortes: TikTok no Buffer (com link do vídeo no branch `midia`) e Instagram numa fila que o próprio workflow roda de hora em hora; `teste=sim` confere as contas sem publicar; rodar de novo não duplica | `job`, `so`, `teste` |
 
-### Postagem automática (configuração única, feita pelo usuário)
-Só é preciso uma vez. Se o usuário ainda não fez, explique em 3 passos curtos, sem jargão:
-1. Criar conta em https://upload-post.com e, no painel, conectar TikTok, Instagram (conta profissional/criador) e YouTube.
-2. Copiar a chave da API no painel do Upload-Post.
-3. No GitHub: repositório → Settings → Secrets and variables → Actions → **New repository secret**, nome `UPLOADPOST_API_KEY`, colar a chave. (Link direto: `https://github.com/<usuario>/<repositorio>/settings/secrets/actions/new`.)
+### Postagem automática (configuração única, feita pelo usuário, tudo grátis)
+Só uma vez. Se ainda não foi feita, passe estes passos curtos, um por vez, sem jargão. Nunca peça token/chave no chat nem coloque em arquivo: eles vão só nos segredos do GitHub (`https://github.com/<usuario>/<repositorio>/settings/secrets/actions/new`).
 
-Nunca peça a chave no chat nem a coloque em arquivos do repositório; ela só vai no segredo do GitHub. Plano grátis do Upload-Post: 10 envios/mês, sem TikTok e sem agendamento (o robô se vira: posta nas outras redes, espaçando sozinho). TikTok e agendamento exigem plano pago. Se o usuário tiver mais de um perfil no Upload-Post, ele pode criar a *variável* (não segredo) `UPLOADPOST_USER` com o nome do perfil; senão o robô usa o primeiro com contas conectadas.
+**Instagram (API oficial da Meta):**
+1. A conta do Instagram precisa ser **profissional** (Configurações → Tipo de conta → Mudar para conta profissional; de preferência "Empresa").
+2. Em https://developers.facebook.com/apps → **Criar app** → caso de uso "Gerenciar mensagens e conteúdo no Instagram" (ou tipo *Business* + produto Instagram).
+3. No app: Instagram → **Configuração da API com login do Instagram** → *Gerar tokens de acesso* → **Adicionar conta** (entra com o Instagram) → **Gerar token** → copiar. (O app pode ficar em modo de desenvolvimento: é para a própria conta, não precisa de análise da Meta.)
+4. Segredo `IG_TOKEN` com esse token.
+5. Opcional, para nunca vencer: o token dura 60 dias. Crie em https://github.com/settings/personal-access-tokens/new um token *fine-grained* só deste repositório com **Secrets: Read and write** e salve como segredo `GH_PAT`. Com ele o robô renova o `IG_TOKEN` sozinho toda semana; sem ele, o log avisa (`AVISO_TOKEN_IG`) 10 dias antes de vencer.
+
+**TikTok (via Buffer, grátis — a API do próprio TikTok só posta como privado):**
+1. Criar conta grátis em https://buffer.com e conectar o TikTok (o plano grátis tem 3 canais e fila de 10 posts por canal).
+2. Em https://publish.buffer.com/settings/api criar a chave da API.
+3. Segredo `BUFFER_API_KEY` com a chave.
+
+Depois de configurar, dispare `postar.yml` com `teste=sim` num job que já tenha `postagem.json`: `TESTE_OK instagram` (o vídeo subiu e foi aceito, nada publicado) e `TESTE_OK tiktok` (vira um rascunho no Buffer, que pode apagar). Só então diga que está tudo ligado.
 
 ---
 
@@ -116,16 +125,16 @@ Critérios de um corte viral:
 
 ## 5. Postar sozinho (automático, sem perguntar)
 
-Assim que os cortes passarem na conferência do passo 4 (só os aprovados; um corte com webcam errada só vai depois de refeito), dispare `postar.yml` com `inputs[job]=<job>` (e `inputs[so]` se for só parte). O usuário pediu automação total: **não pergunte quais redes, horários ou legendas** — use os padrões.
+Assim que os cortes passarem na conferência do passo 4 (só os aprovados; um corte com webcam errada só vai depois de refeito), dispare `postar.yml` com `inputs[job]=<job>` (e `inputs[so]` se for só parte). O usuário pediu automação total: **não pergunte redes, horários ou legendas** — use os padrões. Cada corte ganha o próximo horário de pico livre (12h, 15h, 18h, 21h de Brasília), sem encavalar com cortes de lives anteriores; o TikTok fica agendado no Buffer e o Instagram entra na fila (`estado/fila/<job>.json`), que o workflow roda sozinho de hora em hora (o GitHub pode atrasar uns minutos).
 
-Espere terminar e leia o log (`grep -E "POSTADO|AGENDADO|ERRO|AVISO|perfil="`):
-- `AGENDADO` / `POSTADO` → na entrega, acrescente uma coluna "quando sai" (ou o link) na tabela.
-- `AVISO_SEM_CHAVE` → postagem ainda não configurada: entregue normalmente e, **uma vez por conversa**, ofereça em uma linha os 3 passos da configuração única (seção 0).
-- `AVISO_SEM_REDES` / `AVISO_RECONECTAR` → peça para conectar/reconectar a conta no painel do Upload-Post e depois redispare `postar.yml` (não duplica o que já foi).
-- `AVISO_SEM_AGENDAMENTO` → o plano não agenda: o robô posta agora e espaça sozinho (o run fica aberto algumas horas; não precisa esperar — agende uma checagem com `send_later` se quiser os links).
-- `AVISO ... sem tiktok` → o plano grátis não posta no TikTok; avise uma vez que precisa do plano pago para isso.
-- `ERRO_LIMITE` → bateu o limite do plano/rede; redispare amanhã (o que foi postado fica marcado em `jobs/<job>/postagens.json`).
-- Outro `ERRO_POSTAGEM` → leia a mensagem, corrija o `postagem.json` se for texto (ex.: título longo) e redispare só aquele corte.
+Leia o log (`grep -E "AGENDADO|POSTADO|TESTE_OK|ERRO|AVISO|BUFFER_CAMPOS|instagram=|tiktok="`):
+- `AGENDADO <id> <dia hora> instagram,tiktok` → na entrega, acrescente a coluna "sai em" na tabela.
+- `AVISO_SEM_CHAVE` → postagem ainda não configurada: entregue normalmente e, **uma vez por conversa**, ofereça em uma linha ligar a postagem grátis (seção 0).
+- `AVISO_SEM_TIKTOK` → falta conectar o TikTok no Buffer; depois é só redisparar (não duplica).
+- `AVISO_TOKEN_IG` → o token do Instagram está para vencer ou não foi renovado: peça para gerar outro no painel da Meta e atualizar o segredo `IG_TOKEN` (ou criar o `GH_PAT` para não acontecer de novo).
+- `ERRO_POSTAGEM ... instagram` com "token" → token inválido/vencido (mesma solução acima). Com "processamento" → a Meta recusou o vídeo; confira formato (9:16, 5-90 s).
+- `ERRO_POSTAGEM ... tiktok` / `BUFFER_CAMPOS` → o Buffer recusou; a linha `BUFFER_CAMPOS` lista os campos que a API aceita hoje — ajuste `buffer_postar` em `scripts/postar.py` se mudaram.
+- O que já saiu fica em `estado/fila/<job>.json` (status `postado` com link, `agendado`, `na_fila`, `erro`, `perdido`). Um Reel mais de 20 h atrasado não é postado (fica `perdido`) para não sair fora de hora.
 
 ## Avisos ao usuário (uma vez, sem sermão)
 - Cortar live de terceiros sem permissão pode gerar strike/desmonetização; muitos streamers liberam cortes com crédito.

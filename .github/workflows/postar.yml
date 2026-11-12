@@ -1,58 +1,98 @@
-name: 3 - Postar cortes
+name: 3 - Postar cortes (Instagram + TikTok)
 
 on:
   workflow_dispatch:
     inputs:
       job:
-        description: "Nome do trabalho (mesmo nome da Release dos cortes)"
-        required: true
+        description: "Nome do trabalho (mesmo nome da Release). Vazio = só roda a fila"
+        required: false
+        default: ""
       so:
         description: "Opcional: só estes ids (ex.: 01,03)"
         required: false
         default: ""
+      teste:
+        description: "sim = testa as contas com o 1º corte sem publicar nada"
+        required: false
+        default: "nao"
+  schedule:
+    # de hora em hora: publica no Instagram o que chegou no horário
+    - cron: "7 * * * *"
 
 permissions:
   contents: write
 
 concurrency:
-  group: postar-${{ inputs.job }}
+  group: postar-${{ github.event_name == 'schedule' && 'fila' || inputs.job || 'fila' }}
   cancel-in-progress: false
 
 jobs:
   postar:
     runs-on: ubuntu-latest
-    timeout-minutes: 340
+    timeout-minutes: 90
     env:
       JOB: ${{ inputs.job }}
       SO: ${{ inputs.so }}
+      TESTE: ${{ inputs.teste }}
       GH_TOKEN: ${{ github.token }}
-      UPLOADPOST_API_KEY: ${{ secrets.UPLOADPOST_API_KEY }}
-      UPLOADPOST_USER: ${{ vars.UPLOADPOST_USER }}
+      IG_TOKEN: ${{ secrets.IG_TOKEN }}
+      BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+      GH_PAT: ${{ secrets.GH_PAT }}
     steps:
+      - name: Nada configurado ainda?
+        id: cfg
+        run: |
+          if [ -z "$IG_TOKEN$BUFFER_API_KEY" ]; then
+            echo "AVISO_SEM_CHAVE postagem não configurada (faltam IG_TOKEN e/ou BUFFER_API_KEY)"
+            echo "pular=1" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.cfg.outputs.pular != '1'
 
       - uses: actions/setup-python@v5
+        if: steps.cfg.outputs.pular != '1'
         with:
           python-version: "3.12"
 
-      - name: Baixar os cortes da Release
+      - name: Baixar os cortes e deixar um link público pro Buffer
+        if: steps.cfg.outputs.pular != '1' && env.JOB != ''
         run: |
           pip install -q requests
           mkdir -p saida/"$JOB"
-          if [ -n "$UPLOADPOST_API_KEY" ]; then
-            gh release download "$JOB" -p 'corte_*_vertical.mp4' -D saida/"$JOB" --clobber
-            ls -la saida/"$JOB"
+          gh release download "$JOB" -p 'corte_*_vertical.mp4' -D saida/"$JOB" --clobber
+          [ -n "$BUFFER_API_KEY" ] || exit 0
+          # branch "midia": só os vídeos dos últimos 7 dias (o Buffer busca no horário agendado)
+          M=../midia; rm -rf $M; mkdir -p $M
+          if git ls-remote --exit-code --heads origin midia >/dev/null; then
+            git fetch -q --depth 1 origin midia && git archive FETCH_HEAD | tar -x -C $M
           fi
+          LIMITE=$(date -u -d '7 days ago' +%Y-%m-%d)
+          for d in $M/*/; do n=$(basename "$d"); [[ "${n:0:10}" < "$LIMITE" ]] && rm -rf "$d"; done 2>/dev/null || true
+          mkdir -p $M/"$JOB" && cp saida/"$JOB"/corte_*_vertical.mp4 $M/"$JOB"/
+          cd $M && git init -q -b midia && git config user.name robo-cortes \
+            && git config user.email robo-cortes@users.noreply.github.com \
+            && git add -A && git commit -qm "mídia para postagem" \
+            && git push -q --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" midia
+          sleep 20
 
       - name: Postar / agendar
-        run: python scripts/postar.py --job "$JOB" --so "$SO"
-
-      - name: Salvar o que foi postado
-        if: always()
+        if: steps.cfg.outputs.pular != '1'
         run: |
-          [ -f jobs/"$JOB"/postagens.json ] || exit 0
-          git config user.name "robo-cortes"
-          git config user.email "robo-cortes@users.noreply.github.com"
-          git add jobs/"$JOB"/postagens.json
-          git commit -m "postagem: $JOB" || exit 0
+          pip install -q requests
+          ARGS=(--fila)
+          if [ -n "$JOB" ]; then
+            ARGS=(--job "$JOB" --so "$SO")
+            [ "$TESTE" = "sim" ] && ARGS+=(--teste)
+          fi
+          python scripts/postar.py "${ARGS[@]}"
+
+      - name: Salvar a fila
+        if: always() && steps.cfg.outputs.pular != '1'
+        run: |
+          [ -d estado ] || exit 0
+          git config user.name robo-cortes
+          git config user.email robo-cortes@users.noreply.github.com
+          git add estado
+          git commit -qm "postagem: ${JOB:-fila}" || exit 0
           for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && exit 0; sleep $((i*5)); done
