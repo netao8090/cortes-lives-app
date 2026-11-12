@@ -6,5 +6,8 @@
  "inicio_live_ts": 1794437042.0,
  "chatroom": 4124791,
  "url_canal": "https://kick.com/coringa",
- "inicio_captura_ts": 1794462452.5249894
+ "inicio_captura_ts": 1794462452.5249894,
+ "fim_captura_ts": 1794468130.7074027,
+ "mensagens": 5187,
+ "live_acabou": true
 }
