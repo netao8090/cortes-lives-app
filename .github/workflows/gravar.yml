@@ -1,0 +1,93 @@
+name: 3 - Gravar live ao vivo
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Link do canal (Kick ou Twitch) que está AO VIVO"
+        required: true
+      job:
+        description: "Nome do trabalho (ex.: 2026-11-12-canal-ao-vivo)"
+        required: true
+      minutos:
+        description: "Quantos minutos gravar (máx. ~300)"
+        required: false
+        default: "30"
+      espera:
+        description: "Minutos esperando o cortes.json depois da análise"
+        required: false
+        default: "120"
+
+permissions:
+  contents: write
+
+jobs:
+  gravar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    env:
+      URL: ${{ inputs.url }}
+      JOB: ${{ inputs.job }}
+      MINUTOS: ${{ inputs.minutos }}
+      ESPERA: ${{ inputs.espera }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar ferramentas
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+          pip install -q -U "yt-dlp[default,curl-cffi]" sherpa-onnx soundfile numpy websocket-client opencv-python-headless
+          sudo mkdir -p /usr/share/fonts/truetype/google-fonts /mnt/gravacao
+          sudo chown "$USER" /mnt/gravacao
+          sudo cp fonts/*.ttf /usr/share/fonts/truetype/google-fonts/ && sudo fc-cache -f > /dev/null
+
+      - uses: actions/cache@v4
+        with:
+          path: models
+          key: modelos-small-v1
+
+      - name: Baixar modelos de fala
+        run: bash scripts/setup_models.sh small
+
+      - name: Gravar live + chat
+        run: python scripts/gravar.py "$URL" --job "$JOB" --minutos "$MINUTOS" --pasta /mnt/gravacao
+
+      - name: Transcrever e analisar chat
+        run: |
+          python scripts/transcrever.py /mnt/gravacao/"$JOB"/gravacao.ts --saida jobs/"$JOB"
+          python scripts/analisar_chat.py jobs/"$JOB"
+
+      - name: Salvar análise no repositório
+        run: |
+          git config user.name "robo-cortes"
+          git config user.email "robo-cortes@users.noreply.github.com"
+          git add jobs/"$JOB"
+          git commit -q -m "gravacao: $JOB" || true
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && break; sleep $((i*5)); done
+
+      - name: Esperar o Claude escolher os cortes
+        run: |
+          for i in $(seq 1 $((ESPERA*2))); do
+            git pull -q --rebase || true
+            if [ -f jobs/"$JOB"/cortes.json ]; then echo "cortes.json chegou"; exit 0; fi
+            sleep 30
+          done
+          echo "ninguém escolheu os cortes a tempo"; exit 1
+
+      - name: Renderizar
+        run: python scripts/renderizar.py --job "$JOB"
+
+      - name: Publicar cortes (Release)
+        run: |
+          cp jobs/"$JOB"/publicacao.md saida/"$JOB"/ 2>/dev/null || true
+          if gh release view "$JOB" > /dev/null 2>&1; then
+            gh release upload "$JOB" saida/"$JOB"/* --clobber
+          else
+            gh release create "$JOB" saida/"$JOB"/* --title "Cortes: $JOB" --notes-file jobs/"$JOB"/publicacao.md \
+              || gh release create "$JOB" saida/"$JOB"/* --title "Cortes: $JOB" --notes "Cortes gerados automaticamente."
+          fi
