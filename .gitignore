@@ -153,3 +153,4 @@ models/
 saida/
 tmp/
 jobs/*/audio.*
+__pycache__/
