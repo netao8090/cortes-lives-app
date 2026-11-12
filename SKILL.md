@@ -9,18 +9,20 @@ O usuário manda **só um link** (live, VOD ou canal da Twitch). Quem baixa e re
 
 ## Preparação (uma vez por sessão)
 1. Anexe o repositório com `add_repo` (owner `netao8090`, repo `cortes-lives-app`, access `push`) e clone em `/home/claude/cortes-lives-app`.
-2. Todos os comandos `gh` usam `-R netao8090/cortes-lives-app`.
+2. Use só a API REST (`gh api repos/netao8090/cortes-lives-app/...`); `gh workflow run`, `gh run watch` e `gh release download` usam GraphQL e falham nesta sessão. Abaixo, `R=repos/netao8090/cortes-lives-app`.
 
 ## Passo a passo
 1. **Nome do trabalho (job):** `AAAA-MM-DD-canal` (minúsculo, sem espaço; acrescente `-2`, `-3` se já existir em `jobs/`).
    - Se o usuário pedir só um pedaço ("as últimas 2 horas", "de 1:00:00 a 2:30:00"), passe `inicio`/`fim` em h:mm:ss.
    - Lives com mais de ~5 h: analise em partes (ex.: 0:00:00–3:00:00 e 3:00:00–fim, jobs `-p1`, `-p2`), porque o robô tem limite de ~5,5 h por execução.
 2. **Analisar:**
-   `gh workflow run analisar.yml -R netao8090/cortes-lives-app -f url="<link>" -f job="<job>"`
-   Pegue o id da execução (`gh run list -R ... --workflow analisar.yml -L 1 --json databaseId,status`) e espere com
-   `gh run watch <id> -R ... --exit-status` rodando em background. Tempo típico: ~¼ da duração da live (1 h de live ≈ 15 min).
-   Avise o usuário em uma linha quanto tempo deve levar.
-   Se falhar, leia `gh run view <id> --log-failed` e explique em linguagem simples (VOD privado/só inscritos, YouTube pedindo "não sou robô", live do YouTube/Kick ainda no ar → mandar o link quando virar VOD).
+   `gh api -X POST $R/actions/workflows/analisar.yml/dispatches -f ref=main -f 'inputs[url]=<link>' -f 'inputs[job]=<job>'`
+   (opcionais: `inputs[inicio]`, `inputs[fim]`, `inputs[modelo]=base` para ir mais rápido).
+   Pegue a execução com `gh api "$R/actions/runs?per_page=1" --jq '.workflow_runs[0] | "\(.id) \(.status) \(.conclusion)"'`
+   e acompanhe com um loop de checagem rodando em background (`run_in_background`), parando quando `status` = completed.
+   Tempo típico: ~¼ da duração da live (1 h de live ≈ 15 min) + 2–3 min de preparação. Avise o usuário em uma linha quanto deve levar.
+   Se falhar: `J=$(gh api $R/actions/runs/<id>/jobs --jq '.jobs[0].id'); gh api $R/actions/jobs/$J/logs | grep -iE "ERRO|error" | head`
+   e explique em linguagem simples (`ERRO_YOUTUBE_BLOQUEOU` → YouTube bloqueou o servidor, sugerir Twitch; `ERRO_VOD_RESTRITO`; live do YouTube/Kick ainda no ar → mandar quando virar VOD).
 3. **Ler:** `git -C /home/claude/cortes-lives-app pull`, depois leia `jobs/<job>/meta.json`, `transcricao.txt` (em partes, se for longa) e `picos.txt`.
    - `!!` na transcrição = fala com volume muito alto (grito, susto, comemoração).
    - `picos.txt` = barulho alto sem fala (explosão, batida, risada). Combine com o que é dito logo antes/depois.
@@ -39,13 +41,14 @@ O usuário manda **só um link** (live, VOD ou canal da Twitch). Quem baixa e re
    - `titulo` aparece no vídeo: curto (até ~35 caracteres), em CAIXA ALTA, **sem emoji**.
    E `jobs/<job>/publicacao.md`, com um bloco por corte: título para YouTube/TikTok (até 70 caracteres, com gancho), descrição de 1–2 linhas com **crédito obrigatório** ("Créditos: <canal> – <link original>"), hashtags (#gta6 #gtavi #shorts #cortes + do streamer), ideia de thumbnail.
 6. **Renderizar:** commit + push dos dois arquivos (`git pull --rebase` antes), depois
-   `gh workflow run renderizar.yml -R netao8090/cortes-lives-app -f job="<job>"` e espere igual ao passo 2 (poucos minutos; só os trechos escolhidos são baixados).
-7. **Entregar:** `gh release download <job> -R netao8090/cortes-lives-app -D /home/claude/saida/<job>`.
+   `gh api -X POST $R/actions/workflows/renderizar.yml/dispatches -f ref=main -f 'inputs[job]=<job>'` e espere igual ao passo 2 (3–6 min; só os trechos escolhidos são baixados).
+7. **Entregar:** baixe os arquivos da Release:
+   `mkdir -p /home/claude/saida/<job> && gh api $R/releases/tags/<job> --jq '.assets[] | "\(.id) \(.name)"' | while read id n; do gh api -H "Accept: application/octet-stream" $R/releases/assets/$id > /home/claude/saida/<job>/$n; done`
    Confira 1 frame de cada vídeo vertical (ffmpeg → png → Read). Envie os .mp4 e o publicacao.md com SendUserFile.
    Resposta final curta: quantos cortes, uma linha por corte (tempo na live + por que é bom), e que dá para pedir ajustes ("refaz o 03 começando 5 s antes", "troca o título do 02", "quero com facecam").
 
 ## Ajustes
-- Refazer só alguns: edite `cortes.json`, push e rode `renderizar.yml` com `-f so="03,05"` (substitui os arquivos na Release).
+- Refazer só alguns: edite `cortes.json`, push e dispare `renderizar.yml` com `-f 'inputs[so]=03,05'` (substitui os arquivos na Release).
 - Legenda/fontes/cores ficam em `scripts/cortar.py` (`gerar_ass`).
 
 ## Avisos ao usuário (uma vez, sem sermão)
