@@ -37,8 +37,17 @@ def plataforma(url):
 
 def info(url, flat=False):
     o = {"quiet": True, "skip_download": True, "extract_flat": "in_playlist" if flat else False}
-    with yt_dlp.YoutubeDL(o) as y:
-        return y.extract_info(url, download=False)
+    try:
+        with yt_dlp.YoutubeDL(o) as y:
+            return y.extract_info(url, download=False)
+    except yt_dlp.utils.DownloadError as e:
+        msg = str(e)
+        if "not a bot" in msg or "Sign in to confirm" in msg:
+            sys.exit("ERRO_YOUTUBE_BLOQUEOU: o YouTube bloqueou o download vindo do servidor do GitHub "
+                     "(pede 'confirme que não é um robô'). Use a Twitch ou tente mais tarde.")
+        if "subscriber" in msg.lower() or "private" in msg.lower():
+            sys.exit("ERRO_VOD_RESTRITO: esse VOD é privado ou só para inscritos.")
+        raise
 
 
 def resolver(url):
