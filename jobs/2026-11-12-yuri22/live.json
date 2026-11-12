@@ -6,5 +6,8 @@
  "inicio_live_ts": 1794458231.0,
  "chatroom": 68796179,
  "url_canal": "https://kick.com/yuri22",
- "inicio_captura_ts": 1794462454.3491008
+ "inicio_captura_ts": 1794462454.3491008,
+ "fim_captura_ts": 1794482861.1312003,
+ "mensagens": 32594,
+ "live_acabou": false
 }
