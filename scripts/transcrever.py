@@ -22,6 +22,33 @@ def fmt(t):
     return f"{h}:{m:02d}:{s:02d}" if h else f"{m:02d}:{s:02d}"
 
 
+def sem_repeticao(txt):
+    """Whisper às vezes entra em loop ("como se é como se é ..." / "j-j-j-j-j").
+    Corta qualquer sequência de 1 a 8 palavras repetida mais de 2 vezes seguidas."""
+    import re
+    txt = re.sub(r"(\b\w{1,3}-)\1{3,}\w*", r"\1\1...", txt)  # gagueira tipo j-j-j-j
+    w = txt.split()
+    out = []
+    i = 0
+    while i < len(w):
+        cortou = False
+        for n in range(1, 9):
+            bloco = [x.lower().strip(".,!?") for x in w[i:i + n]]
+            if len(bloco) < n:
+                break
+            k = 1
+            while [x.lower().strip(".,!?") for x in w[i + k * n:i + (k + 1) * n]] == bloco:
+                k += 1
+            if k >= 3:
+                out += w[i:i + n * 2] + ["..."]
+                i += k * n
+                cortou = True
+                break
+        if not cortou:
+            out.append(w[i]); i += 1
+    return " ".join(out).replace(" ...", "...").strip()
+
+
 def extrair_audio(video, wav):
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", video, "-vn", "-ac", "1",
                     "-ar", str(SR), "-c:a", "pcm_s16le", wav], check=True)
@@ -32,7 +59,7 @@ def main():
     ap.add_argument("entrada")
     ap.add_argument("--saida", default="trabalho")
     ap.add_argument("--modelos", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "models"))
-    ap.add_argument("--idioma", default="pt")
+    ap.add_argument("--idioma", default="auto", help="auto (detecta), pt, en, es...")
     ap.add_argument("--threads", type=int, default=os.cpu_count() or 2)
     ap.add_argument("--modelo", default="small", help="small (melhor) ou base (mais rápido)")
     ap.add_argument("--offset", type=float, default=0.0, help="soma este valor (s) a todos os tempos")
@@ -88,14 +115,31 @@ def main():
 
     # --- Whisper ---
     m = a.modelo
-    print(f"[3/3] transcrevendo (whisper-{m})...", flush=True)
     md = os.path.join(a.modelos, f"sherpa-onnx-whisper-{m}")
-    rec = sherpa_onnx.OfflineRecognizer.from_whisper(
-        encoder=os.path.join(md, f"{m}-encoder.int8.onnx"),
-        decoder=os.path.join(md, f"{m}-decoder.int8.onnx"),
-        tokens=os.path.join(md, f"{m}-tokens.txt"),
-        language=a.idioma, task="transcribe", num_threads=a.threads,
-        tail_paddings=800)
+
+    def reconhecedor(lang):
+        return sherpa_onnx.OfflineRecognizer.from_whisper(
+            encoder=os.path.join(md, f"{m}-encoder.int8.onnx"),
+            decoder=os.path.join(md, f"{m}-decoder.int8.onnx"),
+            tokens=os.path.join(md, f"{m}-tokens.txt"),
+            language=lang, task="transcribe", num_threads=a.threads,
+            tail_paddings=800)
+
+    idioma = a.idioma
+    if idioma == "auto":
+        # detecta o idioma nos trechos de fala mais longos e fixa para a live toda
+        det = reconhecedor("")
+        votos = {}
+        for st, smp in sorted(segs, key=lambda x: -len(x[1]))[:10]:
+            s_ = det.create_stream(); s_.accept_waveform(SR, smp); det.decode_stream(s_)
+            lg = (getattr(s_.result, "lang", "") or "").strip("<|>")
+            if lg:
+                votos[lg] = votos.get(lg, 0) + 1
+        idioma = max(votos, key=votos.get) if votos else "pt"
+        print(f"      idioma detectado: {idioma} {votos}", flush=True)
+        del det
+    print(f"[3/3] transcrevendo (whisper-{m}, {idioma})...", flush=True)
+    rec = reconhecedor(idioma)
 
     out = []
     ultimo_log = time.time()
@@ -109,10 +153,9 @@ def main():
         en = st + len(samples) / SR
         if txt in lixo or "Amara.org" in txt:
             continue
-        # repetição degenerada (ex.: "não não não não não ...") -> encurta
-        palavras = txt.split()
-        if len(palavras) > 12 and len(set(w.lower() for w in palavras)) <= 3:
-            txt = " ".join(palavras[:6]) + "..."
+        txt = sem_repeticao(txt)
+        if not txt:
+            continue
         out.append({"start": round(st, 2), "end": round(en, 2), "text": txt,
                     "energia": round(energia_em(st, en), 2)})
         if time.time() - ultimo_log > 30:

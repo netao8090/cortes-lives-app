@@ -21,6 +21,10 @@ on:
         description: "small (melhor) ou base (mais rápido)"
         required: false
         default: "small"
+      idioma:
+        description: "auto (detecta sozinho), pt, en, es..."
+        required: false
+        default: "auto"
 
 permissions:
   contents: write
@@ -35,6 +39,7 @@ jobs:
       INI: ${{ inputs.inicio }}
       FIM: ${{ inputs.fim }}
       MODELO: ${{ inputs.modelo }}
+      IDIOMA: ${{ inputs.idioma }}
     steps:
       - uses: actions/checkout@v4
 
@@ -61,7 +66,7 @@ jobs:
       - name: Transcrever
         run: |
           OFF=$(python -c "import json;print(json.load(open('jobs/$JOB/meta.json'))['offset'])")
-          python scripts/transcrever.py jobs/"$JOB"/audio.* --saida jobs/"$JOB" --modelo "$MODELO" --offset "$OFF"
+          python scripts/transcrever.py jobs/"$JOB"/audio.* --saida jobs/"$JOB" --modelo "$MODELO" --idioma "${IDIOMA:-auto}" --offset "$OFF"
           rm -f jobs/"$JOB"/audio.*
 
       - name: Salvar resultado no repositório
