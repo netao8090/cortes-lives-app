@@ -1,6 +1,32 @@
-{"formato":"vertical","layout":"auto","legenda":true,
- "cortes":[
-  {"id":"01","inicio":"22:39:05","fim":"22:39:51","titulo":"FALTOU 2 SEGUNDOS PRO RECORDE"},
-  {"id":"02","inicio":"23:08:46","fim":"23:09:24","titulo":"PROCURADO PELA POLÍCIA E SEM ARMA"},
-  {"id":"03","inicio":"24:47:58","fim":"24:48:41","titulo":"PERDEU O CAMINHÃO DE SORVETE"}
- ]}
+{
+ "formato": "vertical",
+ "layout": "auto",
+ "legenda": true,
+ "cortes": [
+  {
+   "id": "01",
+   "inicio": "22:39:05",
+   "fim": "22:39:51",
+   "titulo": "FALTOU 2 SEGUNDOS PRO RECORDE"
+  },
+  {
+   "id": "02",
+   "inicio": "23:08:46",
+   "fim": "23:09:24",
+   "titulo": "PROCURADO PELA POLÍCIA E SEM ARMA"
+  },
+  {
+   "id": "03",
+   "inicio": "24:47:58",
+   "fim": "24:48:41",
+   "titulo": "PERDEU O CAMINHÃO DE SORVETE",
+   "layout": "facecam",
+   "facecam": {
+    "x": 0,
+    "y": 0,
+    "w": 512,
+    "h": 288
+   }
+  }
+ ]
+}

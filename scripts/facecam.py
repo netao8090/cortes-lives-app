@@ -119,7 +119,7 @@ def moldura(frames, face):
             viz = [x[1] for x in perfil[max(0, i - 4):i + 5]]
             if n >= 18 and n == max(viz):
                 cands.append((c, n))
-        cands = sorted(cands, key=lambda t: -t[1])[:5]
+        cands = sorted(cands, key=lambda t: -t[1])[:8]
         if perto:
             cands.append((borda_tela, 60.0))
         return cands or [(None, 0.0)]
@@ -199,7 +199,10 @@ def detectar(videos, n=30):
     if face is None:
         return None
     fx, fy, fw, fh = face
-    if fh > 0.12 * H:  # rosto enorme = cena de câmera em tela cheia (não é janelinha de webcam)
+    cxf = fx + fw / 2
+    # rosto grande E no meio da tela = cena de câmera em tela cheia
+    # (rosto grande num canto = close dentro da janelinha da webcam)
+    if fh > 0.12 * H and 0.2 * W < cxf < 0.8 * W:
         dbg = frames[len(frames) // 2].copy()
         return {"x": 0, "y": 0, "w": W, "h": H, "metodo": "tela_cheia", "W": W, "H": H, "debug": dbg,
                 "cx": int(fx + fw / 2)}
