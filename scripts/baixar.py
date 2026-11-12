@@ -59,6 +59,9 @@ def kick_api(caminho):
     return r.json()
 
 
+DEPOIS = float(os.environ.get("VOD_DEPOIS_DE") or 0)  # só aceita VOD que começou depois disso (unix)
+
+
 def resolver(url):
     """Devolve (url_para_baixar, meta_extra).
     - canal da Twitch -> VOD mais recente (a live em andamento já vira VOD)
@@ -81,8 +84,18 @@ def resolver(url):
         vids = kick_api(f"v2/channels/{slug}/videos")
         vids = vids if isinstance(vids, list) else vids.get("data", [])
         vids = [v for v in vids if not v.get("is_live")]
+        if DEPOIS:
+            import datetime
+            def ini(v):
+                x = v.get("start_time") or v.get("created_at") or ""
+                try:
+                    d = datetime.datetime.fromisoformat(x.replace("Z", "+00:00").replace(" ", "T"))
+                    return (d if d.tzinfo else d.replace(tzinfo=datetime.timezone.utc)).timestamp()
+                except Exception:
+                    return 0
+            vids = [v for v in vids if ini(v) >= DEPOIS - 1800]
         if not vids:
-            sys.exit(f"ERRO: o canal {slug} da Kick não tem VODs públicos ainda (a live atual só vira VOD quando acabar).")
+            sys.exit(f"ERRO_VOD_AINDA_NAO: o VOD da live de {slug} ainda não apareceu na Kick.")
         v = vids[0]
         uuid = (v.get("video") or {}).get("uuid")
         extra = {"titulo": v.get("session_title"), "canal": slug,

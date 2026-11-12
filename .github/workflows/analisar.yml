@@ -25,6 +25,10 @@ on:
         description: "auto (detecta sozinho), pt, en, es..."
         required: false
         default: "auto"
+      depois_de:
+        description: "Opcional: só aceita VOD que começou depois deste horário (unix)"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -40,6 +44,7 @@ jobs:
       FIM: ${{ inputs.fim }}
       MODELO: ${{ inputs.modelo }}
       IDIOMA: ${{ inputs.idioma }}
+      VOD_DEPOIS_DE: ${{ inputs.depois_de }}
     steps:
       - uses: actions/checkout@v4
 
