@@ -7,7 +7,7 @@ Lê jobs/J/chat.jsonl e escreve jobs/J/chat_picos.txt:
   - atividade por minuto (para ver o ritmo da live)
   - os maiores picos (janelas de 20 s) com nota, tipo de reação e exemplos de mensagens
 """
-import collections, json, os, re, sys
+import bisect, collections, json, os, re, sys
 
 RISO = re.compile(r"(k{4,}|kkk|haha|hehe|rsrs|lul|kekw|omegalul|lmao|lol|😂|🤣|:kekw:|:lul:|xd\b|jaja)", re.I)
 HYPE = re.compile(r"(pog|poggers|letsgo|let'?s go|vamo+|bora+|caralho|carai|mds|meu deus|absurdo|insano|"
@@ -22,21 +22,40 @@ def fmt(t):
 
 def main(pasta):
     arq = os.path.join(pasta, "chat.jsonl")
-    if not os.path.exists(arq):
+    live = os.path.join(pasta, "chat_live.jsonl")
+    if os.path.exists(arq):
+        msgs = [json.loads(l) for l in open(arq, encoding="utf-8") if l.strip()]
+    elif os.path.exists(live):
+        # chat capturado ao vivo (horário real) -> tempo dentro do VOD
+        info = json.load(open(os.path.join(pasta, "live.json"), encoding="utf-8"))
+        ini = info.get("inicio_live_ts")
+        if not ini:
+            meta = json.load(open(os.path.join(pasta, "meta.json"), encoding="utf-8"))
+            ini = info.get("fim_captura_ts", 0) - (meta.get("duracao") or 0)
+        msgs = []
+        for l in open(live, encoding="utf-8"):
+            if l.strip():
+                m = json.loads(l); m["t"] = m["ts"] - ini
+                if m["t"] >= 0:
+                    msgs.append(m)
+        print(f"chat ao vivo alinhado: início da live em {ini}, {len(msgs)} mensagens", flush=True)
+    else:
         print("sem chat"); return
-    msgs = [json.loads(l) for l in open(arq, encoding="utf-8") if l.strip()]
     saida = os.path.join(pasta, "chat_picos.txt")
     if len(msgs) < 20:
         open(saida, "w").write(f"chat com poucas mensagens ({len(msgs)})\n"); return
     fim = max(m["t"] for m in msgs)
     JAN, PASSO = 20, 5
+    msgs.sort(key=lambda m: m["t"])
+    ini_chat = msgs[0]["t"]
+    ts = [m["t"] for m in msgs]
     por_min = collections.Counter(int(m["t"] // 60) for m in msgs)
-    media = len(msgs) / max(fim / JAN, 1)  # mensagens por janela, em média
+    media = len(msgs) / max((fim - ini_chat) / JAN, 1)  # mensagens por janela, em média
 
     janelas = []
-    t = 0.0
+    t = ini_chat - ini_chat % PASSO
     while t <= fim:
-        dentro = [m for m in msgs if t <= m["t"] < t + JAN]
+        dentro = msgs[bisect.bisect_left(ts, t):bisect.bisect_left(ts, t + JAN)]
         if dentro:
             n = len(dentro)
             riso = sum(1 for m in dentro if RISO.search(m["m"]))
@@ -53,14 +72,15 @@ def main(pasta):
     for j in janelas:
         if all(abs(j[1] - e[1]) >= 45 for e in escolhidas):
             escolhidas.append(j)
-        if len(escolhidas) >= 15:
+        if len(escolhidas) >= max(15, int(fim / 480)):
             break
     escolhidas.sort(key=lambda x: x[1])
 
     with open(saida, "w", encoding="utf-8") as f:
         f.write(f"{len(msgs)} mensagens em {fmt(fim)} (média {media:.1f} por 20 s)\n\n")
         f.write("ATIVIDADE POR MINUTO (mensagens):\n")
-        f.write("  ".join(f"{m:02d}:{por_min.get(m,0)}" for m in range(int(fim // 60) + 1)) + "\n\n")
+        f.write(f"(chat disponível a partir de {fmt(ini_chat)} do vídeo)\n")
+        f.write("  ".join(f"{fmt(m*60)}:{por_min.get(m,0)}" for m in range(int(ini_chat // 60), int(fim // 60) + 1)) + "\n\n")
         f.write("PICOS DO CHAT (nota = quantas vezes acima do normal; tipo = riso/hype/triste)\n")
         for nota, t, n, riso, hype, triste, dentro in escolhidas:
             tipo = max([("riso", riso), ("hype", hype), ("triste/fail", triste)], key=lambda x: x[1])

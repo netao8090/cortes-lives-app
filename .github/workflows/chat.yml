@@ -1,0 +1,39 @@
+name: 4 - Capturar chat ao vivo
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Link do canal (Kick ou Twitch) que está AO VIVO"
+        required: true
+      job:
+        description: "Nome do trabalho (o mesmo usado depois na análise do VOD)"
+        required: true
+      max_minutos:
+        description: "Máximo de minutos (para sozinho quando a live acaba)"
+        required: false
+        default: "340"
+
+permissions:
+  contents: write
+
+jobs:
+  chat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    env:
+      URL: ${{ inputs.url }}
+      JOB: ${{ inputs.job }}
+      MAX: ${{ inputs.max_minutos }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar
+        run: pip install -q -U "yt-dlp[default,curl-cffi]" websocket-client
+      - name: Capturar chat até a live acabar
+        run: |
+          git config user.name "robo-cortes"
+          git config user.email "robo-cortes@users.noreply.github.com"
+          python scripts/gravar_chat.py "$URL" --job "$JOB" --max-minutos "$MAX"

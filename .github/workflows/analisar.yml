@@ -68,6 +68,7 @@ jobs:
           OFF=$(python -c "import json;print(json.load(open('jobs/$JOB/meta.json'))['offset'])")
           python scripts/transcrever.py jobs/"$JOB"/audio.* --saida jobs/"$JOB" --modelo "$MODELO" --idioma "${IDIOMA:-auto}" --offset "$OFF"
           rm -f jobs/"$JOB"/audio.*
+          python scripts/analisar_chat.py jobs/"$JOB" || true
 
       - name: Salvar resultado no repositório
         run: |
