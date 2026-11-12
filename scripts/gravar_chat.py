@@ -51,13 +51,15 @@ def status(url):
     sys.exit("ERRO: mande o link do canal da Kick ou da Twitch.")
 
 
-def salvar_git(msg):
-    subprocess.run(["git", "add", "jobs"], check=False)
-    if subprocess.run(["git", "commit", "-q", "-m", msg], check=False).returncode != 0:
-        return
+def salvar_git(msg, job):
+    """Salva num ramo só deste job (chat-<job>) com push forçado: nunca conflita com outras capturas.
+    Depois, a análise copia os arquivos desse ramo para jobs/<job>/ no main."""
+    ramo = f"chat-{job}"
+    subprocess.run(["git", "checkout", "-q", "-B", ramo], check=False)
+    subprocess.run(["git", "add", os.path.join("jobs", job)], check=False)
+    subprocess.run(["git", "commit", "-q", "-m", msg], check=False)
     for i in range(5):
-        if subprocess.run(["git", "pull", "-q", "--rebase", "--autostash"]).returncode == 0 and \
-           subprocess.run(["git", "push", "-q"]).returncode == 0:
+        if subprocess.run(["git", "push", "-q", "-f", "origin", f"{ramo}:{ramo}"]).returncode == 0:
             return
         time.sleep(5 * (i + 1))
 
@@ -104,12 +106,12 @@ def main():
         if offline >= 3:  # 3 checagens seguidas offline = live acabou
             break
         if time.time() - ultimo_save > 600:
-            chat.f.flush(); salvar_git(f"chat parcial: {a.job}"); ultimo_save = time.time()
+            chat.f.flush(); salvar_git(f"chat parcial: {a.job}", a.job); ultimo_save = time.time()
 
     gravar.PARAR.set(); time.sleep(1); chat.f.flush()
     info.update(fim_captura_ts=time.time(), mensagens=chat.n, live_acabou=offline >= 3)
     json.dump(info, open(os.path.join(jobdir, "live.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    salvar_git(f"chat final: {a.job}")
+    salvar_git(f"chat final: {a.job}", a.job)
     print("fim:", info, flush=True)
 
 

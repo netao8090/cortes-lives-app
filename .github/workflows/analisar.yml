@@ -65,6 +65,15 @@ jobs:
       - name: Baixar modelos de fala
         run: bash scripts/setup_models.sh "$MODELO"
 
+      - name: Trazer chat capturado ao vivo (se houver)
+        run: |
+          if git fetch -q origin "chat-$JOB" 2>/dev/null; then
+            mkdir -p jobs/"$JOB"
+            git show FETCH_HEAD:jobs/"$JOB"/chat_live.jsonl > jobs/"$JOB"/chat_live.jsonl || true
+            git show FETCH_HEAD:jobs/"$JOB"/live.json > jobs/"$JOB"/live.json || true
+            wc -l jobs/"$JOB"/chat_live.jsonl || true
+          fi
+
       - name: Baixar áudio da live
         run: python scripts/baixar.py audio "$URL" --job "$JOB" --inicio "$INI" --fim "$FIM"
 
