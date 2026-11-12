@@ -56,7 +56,7 @@ def salvar_git(msg):
     if subprocess.run(["git", "commit", "-q", "-m", msg], check=False).returncode != 0:
         return
     for i in range(5):
-        if subprocess.run(["git", "pull", "-q", "--rebase"]).returncode == 0 and \
+        if subprocess.run(["git", "pull", "-q", "--rebase", "--autostash"]).returncode == 0 and \
            subprocess.run(["git", "push", "-q"]).returncode == 0:
             return
         time.sleep(5 * (i + 1))
