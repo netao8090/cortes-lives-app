@@ -57,7 +57,9 @@ def palavras_com_tempo(trans, ini, fim):
     for f in trans:
         if f["end"] <= ini or f["start"] >= fim:
             continue
-        ws = f["text"].split()
+        # tira marcações da transcrição: [Música], (risos), [Som de ...]
+        limpo = re.sub(r"\[[^\]]*\]?|\([^)]*\)?", " ", f["text"])
+        ws = limpo.split()
         if not ws:
             continue
         pesos = [len(w) + 2 for w in ws]
