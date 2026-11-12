@@ -1,59 +1,100 @@
 ---
 name: cortes-de-live
-description: Faz cortes de lives (GTA 6 e outras) a partir só de um link da Twitch, YouTube ou Kick, usando o robô no GitHub netao8090/cortes-lives-app. Use quando o usuário mandar um link de live/VOD/canal e pedir cortes.
+description: Faz cortes virais de lives da Kick, Twitch ou YouTube só com o link do canal ou do VOD — inclusive de lives que ainda estão no ar, usando o chat como termômetro de euforia. O trabalho pesado roda de graça no GitHub Actions do próprio usuário. Use quando pedirem cortes, clipes ou shorts de uma live.
 ---
 
-# Cortes de live a partir de um link
+# Cortes de live (Kick / Twitch / YouTube)
 
-O usuário manda **só um link** (live, VOD ou canal da Twitch). Quem baixa e renderiza é o robô no GitHub Actions do repositório `netao8090/cortes-lives-app` (o ambiente do Claude não acessa Twitch/YouTube/Kick). Quem **escolhe os cortes é o Claude**, lendo a transcrição.
+O usuário manda **só um link**. Quem baixa, transcreve e renderiza é um "robô" no **GitHub Actions do próprio usuário** (o ambiente do Claude não acessa Kick/Twitch/YouTube). Quem **escolhe os momentos é o Claude**, lendo a transcrição, os picos de voz e os picos do chat. O chat é só termômetro: **nunca aparece no vídeo**.
 
-## Preparação (uma vez por sessão)
-1. Anexe o repositório com `add_repo` (owner `netao8090`, repo `cortes-lives-app`, access `push`) e clone em `/home/claude/cortes-lives-app`.
-2. Use só a API REST (`gh api repos/netao8090/cortes-lives-app/...`); `gh workflow run`, `gh run watch` e `gh release download` usam GraphQL e falham nesta sessão. Abaixo, `R=repos/netao8090/cortes-lives-app`.
+Resultado: cortes verticais 9:16 em 1080p com a webcam do streamer detectada sozinha (câmera em cima + jogo embaixo, ou retrato quando a câmera está em tela cheia), título no vídeo, legenda palavra por palavra e um `publicacao.md` com título, descrição com crédito e hashtags.
 
-## Passo a passo
-1. **Nome do trabalho (job):** `AAAA-MM-DD-canal` (minúsculo, sem espaço; acrescente `-2`, `-3` se já existir em `jobs/`).
-   - Se o usuário pedir só um pedaço ("as últimas 2 horas", "de 1:00:00 a 2:30:00"), passe `inicio`/`fim` em h:mm:ss.
-   - Lives com mais de ~5 h: analise em partes (ex.: 0:00:00–3:00:00 e 3:00:00–fim, jobs `-p1`, `-p2`), porque o robô tem limite de ~5,5 h por execução.
-2. **Analisar:**
-   `gh api -X POST $R/actions/workflows/analisar.yml/dispatches -f ref=main -f 'inputs[url]=<link>' -f 'inputs[job]=<job>'`
-   (opcionais: `inputs[inicio]`, `inputs[fim]`, `inputs[modelo]=base` para ir mais rápido, `inputs[idioma]` — padrão `auto`, detecta sozinho).
-   Links aceitos: canal ou VOD da Twitch (funciona com a live em andamento); canal ou VOD da Kick (pega o último VOD; a live atual só vira VOD quando termina); VOD do YouTube (instável).
-   Pegue a execução com `gh api "$R/actions/runs?per_page=1" --jq '.workflow_runs[0] | "\(.id) \(.status) \(.conclusion)"'`
-   e acompanhe com um loop de checagem rodando em background (`run_in_background`), parando quando `status` = completed.
-   Tempo típico: ~¼ da duração da live (1 h de live ≈ 15 min) + 2–3 min de preparação. Avise o usuário em uma linha quanto deve levar.
-   Se falhar: `J=$(gh api $R/actions/runs/<id>/jobs --jq '.jobs[0].id'); gh api $R/actions/jobs/$J/logs | grep -iE "ERRO|error" | head`
-   e explique em linguagem simples (`ERRO_YOUTUBE_BLOQUEOU` → YouTube bloqueou o servidor, sugerir Twitch; `ERRO_VOD_RESTRITO`; live do YouTube/Kick ainda no ar → mandar quando virar VOD).
-3. **Ler:** `git -C /home/claude/cortes-lives-app pull`, depois leia `jobs/<job>/meta.json`, `transcricao.txt` (em partes, se for longa) e `picos.txt`.
-   - `!!` na transcrição = fala com volume muito alto (grito, susto, comemoração).
-   - `picos.txt` = barulho alto sem fala (explosão, batida, risada). Combine com o que é dito logo antes/depois.
-4. **Escolher 5–8 cortes** (ou quantos o usuário pedir). Critérios para GTA:
-   - Reação forte (susto, raiva, gargalhada), fail/bug engraçado, perseguição/fuga com desfecho, jogada absurda, fala marcante, interação com chat/doação, plot twist.
-   - O corte tem que se entender sozinho: começa 1–3 s antes do gancho (com o contexto mínimo) e termina logo depois do clímax/punchline.
-   - Shorts: 20–60 s (máx. 90 s). Nunca cortar no meio de frase.
-   - Evite: telas de loading/espera, publi/merchan, trechos com música tocando ao fundo (strike de direitos autorais), momentos que só fazem sentido com a imagem se a transcrição não deixa claro.
-   - Prefira cortes com fala + `!!`/pico próximos.
-5. **Escrever** `jobs/<job>/cortes.json`:
-   ```json
-   {"formato": "vertical", "layout": "auto", "legenda": true,
-    "cortes": [{"id": "01", "inicio": "1:02:31", "fim": "1:03:05", "titulo": "ELE NÃO ESPERAVA ISSO"}]}
-   ```
-   - `formato`: vertical (padrão), horizontal ou ambos.
-   - `layout`: `auto` (padrão) acha a webcam do streamer sozinho e põe câmera em cima + jogo embaixo; se não achar, usa jogo inteiro com fundo desfocado. `blur` força o fundo desfocado (`zoom` 1.0–1.5). `facecam` + `"facecam": {"x","y","w","h"}` (pixels do vídeo) força uma caixa manual.
-   - Depois de renderizar, confira `facecam_detectada.jpg` na Release (caixa amarela = webcam achada). Se errou, refaça com `facecam` manual usando as coordenadas certas.
-   - `titulo` aparece no vídeo: curto (até ~35 caracteres), em CAIXA ALTA, **sem emoji**.
-   E `jobs/<job>/publicacao.md`, com um bloco por corte: título para YouTube/TikTok (até 70 caracteres, com gancho), descrição de 1–2 linhas com **crédito obrigatório** ("Créditos: <canal> – <link original>"), hashtags (#gta6 #gtavi #shorts #cortes + do streamer), ideia de thumbnail.
-6. **Renderizar:** commit + push dos dois arquivos (`git pull --rebase` antes), depois
-   `gh api -X POST $R/actions/workflows/renderizar.yml/dispatches -f ref=main -f 'inputs[job]=<job>'` e espere igual ao passo 2 (3–6 min; só os trechos escolhidos são baixados).
-7. **Entregar:** baixe os arquivos da Release:
-   `mkdir -p /home/claude/saida/<job> && gh api $R/releases/tags/<job> --jq '.assets[] | "\(.id) \(.name)"' | while read id n; do gh api -H "Accept: application/octet-stream" $R/releases/assets/$id > /home/claude/saida/<job>/$n; done`
-   Confira 1 frame de cada vídeo vertical (ffmpeg → png → Read). Envie os .mp4 e o publicacao.md com SendUserFile.
-   Resposta final curta: quantos cortes, uma linha por corte (tempo na live + por que é bom), e que dá para pedir ajustes ("refaz o 03 começando 5 s antes", "troca o título do 02", "quero com facecam").
+Fale com o usuário em linguagem simples, sem jargão técnico. Ele não precisa saber de workflows, ramos ou API.
 
-## Ajustes
-- Refazer só alguns: edite `cortes.json`, push e dispare `renderizar.yml` com `-f 'inputs[so]=03,05'` (substitui os arquivos na Release).
-- Legenda/fontes/cores ficam em `scripts/cortar.py` (`gerar_ass`).
+---
+
+## 0. Primeira vez: montar o robô no GitHub do usuário
+
+Pergunte o nome do repositório se ele ainda não disse (formato `usuario/repositorio`). Se não tiver um: peça para criar um repositório **público** vazio no GitHub (público = GitHub Actions grátis e sem limite de minutos).
+
+1. `add_repo` com `access: "push"`. Se recusar o push, peça para instalar o app do Claude no GitHub com acesso a esse repositório (https://github.com/apps/claude/installations/select_target) ou reconectar o GitHub nos conectores do claude.ai.
+2. Clone em `/home/claude/<repositorio>`.
+3. Se o repositório ainda não tem `scripts/renderizar.py`: copie **todo o conteúdo da pasta `robo/` desta skill** para a raiz do repositório (inclui `.github/workflows/`, `scripts/`, `fonts/`, `assets/`, `.gitignore`), faça commit e push.
+4. Daqui pra frente, use **só a API REST**: `R=repos/<usuario>/<repositorio>`. `gh workflow run`, `gh run watch` e `gh release download` usam GraphQL e falham nesta sessão.
+
+Comandos que você vai usar:
+- Disparar: `gh api -X POST $R/actions/workflows/<arquivo>.yml/dispatches -f ref=main -f 'inputs[chave]=valor' ...`
+- Último run: `gh api "$R/actions/workflows/<arquivo>.yml/runs?per_page=1" --jq '.workflow_runs[0] | "\(.id) \(.status) \(.conclusion)"'`
+- Esperar: loop de checagem a cada ~20 s (`timeout 20 tail -f /dev/null` no lugar de `sleep`) até `completed`.
+- Log (só depois de terminar): `J=$(gh api $R/actions/runs/<id>/jobs --jq '.jobs[0].id'); gh api $R/actions/jobs/$J/logs | grep -E "ERRO|webcam|layout|ok /|fonte"`
+- Baixar a Release: `gh api $R/releases/tags/<job> --jq '.assets[] | "\(.id) \(.name)"' | while read id n; do gh api -H "Accept: application/octet-stream" $R/releases/assets/$id > pasta/$n; done`
+
+Os workflows do robô:
+| Arquivo | Para quê | Entradas |
+|---|---|---|
+| `analisar.yml` | baixa **só o áudio** do VOD, transcreve (Whisper, idioma automático), marca gritos e junta o chat capturado | `url`, `job`, `inicio`, `fim` (h:mm:ss), `modelo` (small/base), `idioma` (auto), `depois_de` (unix: só aceita VOD que começou depois disso), `chat_de` (job de onde vem o chat) |
+| `renderizar.yml` | baixa **só os trechos escolhidos** em 1080p, detecta a webcam **em cada corte**, renderiza e publica numa Release com o nome do job | `job`, `so` (ex.: `01,03`) |
+| `chat.yml` | captura o chat de uma live **ao vivo** até ela acabar (salva no ramo `chat-<job>` a cada 10 min; limite ~5h40 por execução) | `url` (canal), `job`, `max_minutos` |
+| `gravar.yml` | grava vídeo+chat de uma live ao vivo e renderiza do próprio arquivo (use só se o VOD não ficar disponível) | `url`, `job`, `minutos`, `espera` |
+
+---
+
+## 1. Live que JÁ ACABOU (ou VOD) — o caso mais comum
+
+1. Nome do job: `AAAA-MM-DD-canal` (minúsculo, sem espaço).
+2. Link do canal → o robô pega o último VOD. Twitch: funciona até durante a live. Kick: só depois que a live termina. YouTube: costuma bloquear servidores (`ERRO_YOUTUBE_BLOQUEOU`) — sugira Twitch/Kick.
+3. Live curta (até ~4 h): um `analisar.yml`. Live longa: **divida em partes de ~3 h em paralelo** (jobs `<job>-p1`, `-p2`..., com `inicio`/`fim`; a última sem `fim`). Cada 1 h de áudio leva ~20-25 min.
+4. Para teste rápido ou se o usuário pedir um trecho, use `inicio`/`fim`.
+
+## 2. Live que está AO VIVO agora (Kick)
+
+A Kick não deixa baixar o passado de uma live em andamento; o VOD completo só aparece quando ela acaba. Então:
+1. Dispare `chat.yml` (url do canal, job `AAAA-MM-DD-canal`). Ele para sozinho quando a live acaba.
+2. Diga ao usuário que ele pode desligar o PC; agende checagens com `send_later` a cada ~30 min (mensagem autoexplicativa, com os nomes dos jobs e o que fazer em cada caso).
+3. Em cada checagem: `git fetch origin chat-<job>` e veja `jobs/<job>/live.json` nesse ramo.
+   - `live_acabou: true` → disparar `analisar.yml` com `depois_de` = `inicio_live_ts` do live.json e `chat_de` = job do chat (em partes, se for longa).
+   - Run terminou por tempo com a live no ar → redisparar `chat.yml` com o mesmo job (o arquivo é acrescentado).
+   - **Se `inicio_live_ts` mudou** entre checagens, a live **reiniciou** (duas sessões). A sessão antiga já virou VOD: separe o chat dela (mensagens com `ts` < novo início) num ramo `chat-<job>-a` com um `live.json` contendo o início antigo, e analise essa sessão com `chat_de=<job>-a`.
+4. Twitch ao vivo: dá para analisar o VOD direto (já existe durante a live); use `chat.yml` só se quiser o chat como termômetro.
+
+## 3. Escolher os cortes (a parte do Claude)
+
+Depois do `analisar.yml`: `git pull` e leia de cada parte:
+- `transcricao.txt` — `[h:mm:ss-h:mm:ss] texto`; `!!` = fala com volume muito alto.
+- `picos.txt` — barulho alto sem fala (explosão, risada).
+- `chat_picos.txt` — janelas em que o chat explodiu (nota = vezes acima do normal; tipo riso/hype/triste) com exemplos de mensagens. Diz a partir de quando o chat existe.
+- `meta.json` — confira título e duração para ter certeza de que é o VOD certo.
+
+Transcrições longas: ranqueie janelas de ~40 s por energia (`transcricao.json` tem `energia` 0-1) e por exclamações, e leia o texto em volta das melhores + dos picos do chat.
+
+Critérios de um corte viral:
+- Reação forte do streamer (susto, grito, gargalhada, raiva) **coincidindo** com explosão do chat, quando houver chat.
+- Fail, jogada absurda, plot twist, resenha engraçada, interação com chat/convidado.
+- Entende-se sozinho: começa 1-3 s antes do gancho (com o mínimo de contexto) e termina logo após o clímax. Shorts de 20-60 s (máx. ~65 s). Nunca cortar no meio da frase.
+- Evite: loading/espera, publi, música tocando ao fundo (direitos autorais), trechos de conteúdo sexual explícito ou ofensas pesadas.
+- Se o chat for constante sem picos (live muito movimentada), pese mais a voz e a história do momento.
+- Quantidade: o que o usuário pedir (padrão 5; se pedir "os mais virais", 3).
+
+## 4. Renderizar
+
+1. Crie o job `<job>-cortes` (ou use o próprio job se foi uma parte só) com:
+   - `meta.json` copiado de uma parte, com `"offset": 0`.
+   - `transcricao.json` juntando as transcrições de todas as partes (ordenado por `start`).
+   - `cortes.json`:
+     ```json
+     {"formato": "vertical", "layout": "auto", "legenda": true,
+      "cortes": [{"id": "01", "inicio": "6:25:21", "fim": "6:26:26", "titulo": "A DESPEDIDA DE SOLTEIRO DELE"}]}
+     ```
+     `titulo` aparece no vídeo: até ~35 caracteres, CAIXA ALTA, sem emoji. `formato`: vertical, horizontal ou ambos.
+     Um corte pode forçar o próprio layout: `"layout": "facecam", "facecam": {"x":0,"y":0,"w":512,"h":288}` (pixels do vídeo original), `"layout": "retrato"` ou `"layout": "blur"`.
+   - `publicacao.md`: por corte, título para YouTube/TikTok (≤70 caracteres, com gancho; emoji pode), descrição de 1-2 linhas com **crédito obrigatório** ("Créditos: <canal> – <link do canal>"), hashtags e ideia de thumbnail.
+2. Commit, `git pull --rebase`, push, dispare `renderizar.yml` (3-6 min).
+3. Baixe a Release e **confira 1-2 quadros de cada corte** (ffmpeg → png → Read) e os `facecam_<id>.jpg` (caixa amarela = webcam achada):
+   - A caixa pegou só a webcam? O título não cobre o rosto? A legenda está limpa?
+   - Se errou a webcam: refaça só aquele corte com `facecam` manual (copie a caixa de outro corte da mesma live, que costuma ser igual) usando `inputs[so]=<id>`.
+4. Entregue com `SendUserFile` (os .mp4 + `publicacao.md`) e uma tabela curta: corte, tempo na live, por que é viral.
 
 ## Avisos ao usuário (uma vez, sem sermão)
 - Cortar live de terceiros sem permissão pode gerar strike/desmonetização; muitos streamers liberam cortes com crédito.
-- YouTube às vezes bloqueia o download vindo de servidor; Twitch é o mais confiável.
+- Em repositório público, as transcrições e os cortes ficam visíveis; os vídeos completos das lives não ficam salvos.
+- A legenda vem da transcrição automática e erra em trechos de gritaria; dá para revisar antes de renderizar.
