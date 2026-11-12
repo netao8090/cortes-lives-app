@@ -17,7 +17,8 @@ O usuário manda **só um link** (live, VOD ou canal da Twitch). Quem baixa e re
    - Lives com mais de ~5 h: analise em partes (ex.: 0:00:00–3:00:00 e 3:00:00–fim, jobs `-p1`, `-p2`), porque o robô tem limite de ~5,5 h por execução.
 2. **Analisar:**
    `gh api -X POST $R/actions/workflows/analisar.yml/dispatches -f ref=main -f 'inputs[url]=<link>' -f 'inputs[job]=<job>'`
-   (opcionais: `inputs[inicio]`, `inputs[fim]`, `inputs[modelo]=base` para ir mais rápido).
+   (opcionais: `inputs[inicio]`, `inputs[fim]`, `inputs[modelo]=base` para ir mais rápido, `inputs[idioma]` — padrão `auto`, detecta sozinho).
+   Links aceitos: canal ou VOD da Twitch (funciona com a live em andamento); canal ou VOD da Kick (pega o último VOD; a live atual só vira VOD quando termina); VOD do YouTube (instável).
    Pegue a execução com `gh api "$R/actions/runs?per_page=1" --jq '.workflow_runs[0] | "\(.id) \(.status) \(.conclusion)"'`
    e acompanhe com um loop de checagem rodando em background (`run_in_background`), parando quando `status` = completed.
    Tempo típico: ~¼ da duração da live (1 h de live ≈ 15 min) + 2–3 min de preparação. Avise o usuário em uma linha quanto deve levar.

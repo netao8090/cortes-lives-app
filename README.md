@@ -13,7 +13,8 @@ Os cortes ficam em **Releases** (lado direito da página do repositório).
 Mande o link e diga "faz os cortes". Exemplos:
 - `https://www.twitch.tv/nomedocanal` → pega a live atual (o que já foi transmitido) ou a última
 - `https://www.twitch.tv/videos/123456789`
-- `https://www.youtube.com/watch?v=...` (depois que a live terminar)
+- `https://kick.com/nomedocanal` → pega o último VOD (a live atual só aparece quando termina)
+- `https://www.youtube.com/watch?v=...` (depois que a live terminar; o YouTube costuma bloquear)
 
 ## Usar na mão
 Aba **Actions** → "1 - Analisar live" → **Run workflow** → link + nome. Depois crie `jobs/<nome>/cortes.json` e rode "2 - Renderizar cortes".
