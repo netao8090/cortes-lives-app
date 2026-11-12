@@ -1,43 +1,39 @@
 #!/usr/bin/env python3
 """
-Posta sozinho os cortes no Instagram Reels (API oficial da Meta) e no TikTok (API grátis do Buffer).
-Tudo grátis. Cada corte ganha um horário de pico; o Buffer agenda o TikTok sozinho e o Instagram
-entra numa fila que o workflow roda de hora em hora.
+Posta sozinho os cortes no TikTok e no Instagram (Reels) pela API grátis do Buffer.
+
+Cada corte ganha um horário de pico (12h, 15h, 18h, 21h de Brasília) e é agendado no Buffer,
+nas duas redes, no mesmo horário. O plano grátis do Buffer aceita só 10 posts esperando por rede;
+o que passar disso fica na "reserva" (estado/fila/<job>.json) e o workflow, de hora em hora,
+empurra para o Buffer conforme a fila vai esvaziando.
 
 Modos:
-  --job J [--so 01,02]   agenda os cortes do job (TikTok no Buffer, Instagram na fila)
-  --job J --teste        testa as contas com o 1º corte SEM publicar nada
-                         (TikTok vira rascunho no Buffer; Instagram só sobe e processa)
-  --fila                 publica no Instagram o que já chegou na hora; cuida do token
+  --job J [--so 01,02]   agenda os cortes do job
+  --job J --teste        confere as contas com o 1º corte: vira RASCUNHO no Buffer (nada publicado)
+  --fila                 empurra a reserva para o Buffer quando abre vaga
+  --midia-necessaria     imprime os vídeos que precisam continuar no link público (branch midia)
 
-Segredos (GitHub → Settings → Secrets → Actions):
-  IG_TOKEN        token da API do Instagram (painel da Meta → "Generate token")
-  BUFFER_API_KEY  chave da API do Buffer (publish.buffer.com/settings/api)
-  GH_PAT          opcional: token do GitHub com permissão de Secrets, para renovar o IG_TOKEN sozinho
+Segredo: BUFFER_API_KEY (publish.buffer.com/settings/api)
+Textos:  jobs/J/postagem.json  {"cortes":[{"id","titulo","legenda","descricao"}], opcionais:
+         "horarios":["12:00",...], "fuso":"America/Sao_Paulo", "redes":["tiktok","instagram"]}
 
-Arquivos:
-  jobs/J/postagem.json        textos (o Claude escreve)  {"cortes":[{"id","titulo","legenda","descricao"}]}
-  estado/fila/J.json          o que foi agendado/postado de cada job (rodar de novo não duplica)
-  estado/instagram.json       quando o token foi renovado (o token em si nunca vai pro repositório)
-
-Linhas que o Claude procura no log: AGENDADO, POSTADO, TESTE_OK, ERRO_POSTAGEM, AVISO_SEM_CHAVE,
-AVISO_SEM_TIKTOK, AVISO_TOKEN_IG, BUFFER_CAMPOS.
+Linhas que o Claude procura no log: AGENDADO, RESERVA, ENVIADO_DA_RESERVA, TESTE_OK, ERRO_POSTAGEM,
+AVISO_SEM_CHAVE, AVISO_SEM_REDE, BUFFER_CAMPOS.
 """
-import argparse, glob, json, os, re, subprocess, sys, time
+import argparse, glob, json, os, re, sys
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 import requests
 
-IG_API = os.environ.get("IG_API", "https://graph.instagram.com/v23.0")
-IG_HOST = os.environ.get("IG_HOST", "https://graph.instagram.com")
 BUFFER_API = os.environ.get("BUFFER_API", "https://api.buffer.com")
 REPO = os.environ.get("GITHUB_REPOSITORY", "netao8090/cortes-lives-app")
 MIDIA_BASE = os.environ.get("MIDIA_BASE") or f"https://raw.githubusercontent.com/{REPO}/midia"
+LIMITE_FILA = int(os.environ.get("LIMITE_FILA", "10"))
+REDES = ["tiktok", "instagram"]
 HORARIOS = ["12:00", "15:00", "18:00", "21:00"]
 FUSO = "America/Sao_Paulo"
 PASTA_FILA = "estado/fila"
-ESTADO_IG = "estado/instagram.json"
 
 
 def agora():
@@ -56,310 +52,288 @@ def gravar(path, obj):
     json.dump(obj, open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
 
-def msg_erro(r):
-    try:
-        j = r.json()
-        e = j.get("error") or j.get("errors") or j.get("message") or j
-        return (json.dumps(e, ensure_ascii=False) if not isinstance(e, str) else e)[:400]
-    except Exception:
-        return (r.text or "")[:400]
+def todas_filas():
+    return {f: ler(f, {"itens": []}) for f in sorted(glob.glob(os.path.join(PASTA_FILA, "*.json")))}
+
+
+def url_video(job, cid):
+    return f"{MIDIA_BASE}/{job}/corte_{cid}_vertical.mp4"
 
 
 # ---------------------------------------------------------------- horários
-def horarios_ocupados():
-    occ = set()
-    for f in glob.glob(os.path.join(PASTA_FILA, "*.json")):
-        for it in ler(f, {}).get("itens", []):
-            occ.add(it["quando"][:16])
-    return occ
+def ocupados(filas, rede):
+    return {it["quando"][:16] for fl in filas.values() for it in fl["itens"]
+            if it["rede"] == rede and it.get("status") != "erro"}
 
 
-def proximos_horarios(n, horarios, fuso, ocupados=(), base=None):
+def proximo_horario(horarios, fuso, usados, base=None):
     tz = ZoneInfo(fuso)
     base = (base or agora()).astimezone(tz) + timedelta(minutes=20)
-    out, dia = [], base.date()
-    while len(out) < n:
+    dia = base.date()
+    while True:
         for h in sorted(horarios):
             hh, mm = map(int, h.split(":"))
             t = datetime(dia.year, dia.month, dia.day, hh, mm, tzinfo=tz)
-            chave = t.astimezone(timezone.utc).isoformat()[:16]
-            if t >= base and chave not in ocupados and len(out) < n:
-                out.append(t)
+            if t >= base and t.astimezone(timezone.utc).isoformat()[:16] not in usados:
+                return t
         dia += timedelta(days=1)
-    return out
 
 
-def video_local(job, cid):
-    nome = f"corte_{cid}_vertical.mp4"
-    path = os.path.join("saida", job, nome)
-    if not os.path.exists(path):
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        subprocess.run(["gh", "release", "download", job, "-p", nome, "-D", os.path.dirname(path),
-                        "--clobber", "-R", REPO], check=False)
-    return path if os.path.exists(path) else None
+def esperando_no_buffer(filas, rede):
+    return sum(1 for fl in filas.values() for it in fl["itens"]
+               if it["rede"] == rede and it.get("status") == "agendado"
+               and datetime.fromisoformat(it["quando"]) > agora())
 
 
-# ---------------------------------------------------------------- Instagram
-def ig_conta(token):
-    r = requests.get(f"{IG_API}/me", params={"fields": "user_id,username", "access_token": token}, timeout=60)
-    if not r.ok:
-        raise RuntimeError(f"token do Instagram recusado: {msg_erro(r)}")
-    j = r.json()
-    return str(j.get("user_id") or j.get("id")), j.get("username", "?")
+# ---------------------------------------------------------------- Buffer
+class BufferErro(RuntimeError):
+    pass
 
 
-def ig_publicar(token, uid, video, legenda, teste=False):
-    """Sobe o arquivo direto (sem precisar de link público), espera processar e publica."""
-    r = requests.post(f"{IG_API}/{uid}/media", timeout=60, data={
-        "media_type": "REELS", "upload_type": "resumable", "caption": legenda[:2200],
-        "share_to_feed": "true", "access_token": token})
-    if not r.ok:
-        raise RuntimeError(f"criar Reel: {msg_erro(r)}")
-    j = r.json()
-    cont = j["id"]
-    uri = j.get("uri") or f"https://rupload.facebook.com/ig-api-upload/v23.0/{cont}"
-    tam = os.path.getsize(video)
-    with open(video, "rb") as f:
-        r = requests.post(uri, data=f, timeout=900, headers={
-            "Authorization": f"OAuth {token}", "offset": "0", "file_size": str(tam)})
-    if not r.ok:
-        raise RuntimeError(f"enviar vídeo: {msg_erro(r)}")
-    fim, st = time.time() + 900, {}
-    while time.time() < fim:
-        st = requests.get(f"{IG_API}/{cont}", timeout=60,
-                          params={"fields": "status_code,status", "access_token": token}).json()
-        if st.get("status_code") in ("FINISHED", "ERROR", "EXPIRED"):
-            break
-        time.sleep(20)
-    if st.get("status_code") != "FINISHED":
-        raise RuntimeError(f"processamento do Reel: {st.get('status_code')} {st.get('status', '')}")
-    if teste:
-        return "teste"
-    r = requests.post(f"{IG_API}/{uid}/media_publish", timeout=120,
-                      data={"creation_id": cont, "access_token": token})
-    if not r.ok:
-        raise RuntimeError(f"publicar: {msg_erro(r)}")
-    mid = r.json().get("id")
-    link = requests.get(f"{IG_API}/{mid}", timeout=60,
-                        params={"fields": "permalink", "access_token": token}).json().get("permalink", "")
-    return link
-
-
-def ig_cuidar_token(token):
-    """Renova o token (vale 60 dias) a cada ~7 dias se houver GH_PAT; senão avisa antes de vencer."""
-    est = ler(ESTADO_IG, {})
-    ref = est.get("renovado_em") or est.get("visto_em")
-    if not ref:
-        est["visto_em"] = agora().isoformat(); gravar(ESTADO_IG, est); return
-    dias = (agora() - datetime.fromisoformat(ref)).days
-    pat = os.environ.get("GH_PAT", "").strip()
-    if pat and dias >= 7:
-        r = requests.get(f"{IG_HOST}/refresh_access_token", timeout=60,
-                         params={"grant_type": "ig_refresh_token", "access_token": token})
-        if r.ok and r.json().get("access_token"):
-            novo = r.json()["access_token"]
-            p = subprocess.run(["gh", "secret", "set", "IG_TOKEN", "-R", REPO], input=novo, text=True,
-                               env={**os.environ, "GH_TOKEN": pat}, capture_output=True)
-            if p.returncode == 0:
-                est.update(renovado_em=agora().isoformat(), visto_em=None); gravar(ESTADO_IG, est)
-                print("token do Instagram renovado"); return
-            print(f"AVISO_TOKEN_IG não consegui salvar o token renovado (GH_PAT sem permissão de Secrets?): {p.stderr[:200]}")
-        else:
-            print(f"AVISO_TOKEN_IG renovação recusada: {msg_erro(r)}")
-    if dias >= 50:
-        print(f"AVISO_TOKEN_IG o token do Instagram vence em ~{max(0, 60 - dias)} dias; gere outro no painel da Meta")
-
-
-# ---------------------------------------------------------------- Buffer (TikTok)
-def gql(chave, query, variables=None):
-    r = requests.post(BUFFER_API, timeout=120, json={"query": query, "variables": variables or {}},
-                      headers={"Authorization": f"Bearer {chave}", "Content-Type": "application/json"})
-    if not r.ok:
-        raise RuntimeError(f"Buffer HTTP {r.status_code}: {msg_erro(r)}")
-    j = r.json()
-    if j.get("errors"):
-        raise RuntimeError("Buffer: " + "; ".join(e.get("message", "") for e in j["errors"])[:400])
-    return j["data"]
-
-
-ENUMS = {"schedulingType", "mode"}
-
-
-def literal(v, chave=""):
+def literal(v, enums=(), chave=""):
     """dict → literal de input GraphQL (enums sem aspas), sem depender do nome exato dos tipos."""
     if isinstance(v, dict):
-        return "{" + ",".join(f"{k}:{literal(x, k)}" for k, x in v.items()) + "}"
+        return "{" + ",".join(f"{k}:{literal(x, enums, k)}" for k, x in v.items()) + "}"
     if isinstance(v, list):
-        return "[" + ",".join(literal(x) for x in v) + "]"
+        return "[" + ",".join(literal(x, enums) for x in v) + "]"
     if isinstance(v, bool):
         return "true" if v else "false"
-    if chave in ENUMS:
+    if chave in enums:
         return str(v)
     return json.dumps(v, ensure_ascii=False)
 
 
-def buffer_tiktok(chave):
-    orgs = gql(chave, "query{account{organizations{id name}}}")["account"]["organizations"]
-    for o in orgs:
-        canais = gql(chave, "query{channels(input:%s){id name service}}"
-                     % literal({"organizationId": o["id"]}))["channels"]
-        tt = [c for c in canais if (c.get("service") or "").lower() == "tiktok"]
-        if tt:
-            return tt[0]
-    return None
+class Buffer:
+    def __init__(self, chave):
+        self.chave = chave
+        self._ig_meta = None
+
+    def gql(self, query):
+        r = requests.post(BUFFER_API, timeout=120, json={"query": query},
+                          headers={"Authorization": f"Bearer {self.chave}", "Content-Type": "application/json"})
+        if r.status_code in (401, 403):
+            raise BufferErro(f"chave do Buffer recusada (HTTP {r.status_code})")
+        if not r.ok:
+            raise BufferErro(f"Buffer HTTP {r.status_code}: {r.text[:300]}")
+        j = r.json()
+        if j.get("errors"):
+            raise BufferErro("; ".join(e.get("message", "") for e in j["errors"])[:400])
+        return j["data"]
+
+    def canais(self):
+        """{rede: canal} com o primeiro canal de cada rede conectado no Buffer."""
+        achados = {}
+        for o in self.gql("query{account{organizations{id name}}}")["account"]["organizations"]:
+            for c in self.gql("query{channels(input:%s){id name service}}"
+                              % literal({"organizationId": o["id"]}))["channels"]:
+                s = (c.get("service") or "").lower()
+                if s in REDES and s not in achados:
+                    achados[s] = c
+        return achados
+
+    def tipo(self, nome):
+        q = 'query{__type(name:%s){inputFields{name type{name kind ofType{name kind}}}}}' % json.dumps(nome)
+        return (self.gql(q).get("__type") or {}).get("inputFields") or []
+
+    def enum(self, nome):
+        q = 'query{__type(name:%s){enumValues{name}}}' % json.dumps(nome)
+        return [e["name"] for e in ((self.gql(q).get("__type") or {}).get("enumValues") or [])]
+
+    def meta_instagram(self):
+        """Descobre na própria API como marcar o post do Instagram como Reel (e compartilhar no feed)."""
+        if self._ig_meta is not None:
+            return self._ig_meta
+        meta, enums = {}, set()
+        try:
+            for f in self.tipo("InstagramPostMetadataInput"):
+                t = f["type"]; base = t.get("ofType") or t
+                if base.get("kind") == "ENUM":
+                    reel = [v for v in self.enum(base["name"]) if v.lower() == "reel"]
+                    if reel:
+                        meta[f["name"]] = reel[0]; enums.add(f["name"])
+                elif base.get("name") == "Boolean" and "feed" in f["name"].lower():
+                    meta[f["name"]] = True
+        except BufferErro as e:
+            print(f"BUFFER_CAMPOS não deu para ler os campos do Instagram: {e}")
+        self._ig_meta = (meta, enums)
+        return self._ig_meta
+
+    def campos(self):
+        try:
+            a = ",".join(f["name"] for f in self.tipo("CreatePostInput"))
+            b = ",".join(f["name"] for f in self.tipo("InstagramPostMetadataInput"))
+            c = ",".join(f["name"] for f in self.tipo("TikTokPostMetadataInput"))
+            print(f"BUFFER_CAMPOS CreatePostInput={a} | Instagram={b} | TikTok={c}")
+        except Exception as e:
+            print(f"BUFFER_CAMPOS indisponível: {e}")
+
+    def postar(self, rede, canal_id, texto, url, quando=None, teste=False):
+        entrada = {"text": texto[:2200], "channelId": canal_id, "schedulingType": "automatic",
+                   "assets": [{"video": {"url": url}}]}
+        enums = {"schedulingType", "mode"}
+        if rede == "instagram":
+            meta, en = self.meta_instagram()
+            if meta:
+                entrada["metadata"] = {"instagram": meta}; enums |= en
+        if teste:
+            entrada.update(mode="addToQueue", saveToDraft=True)
+        else:
+            entrada.update(mode="customScheduled",
+                           dueAt=quando.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"))
+        q = ("mutation{createPost(input:%s){... on PostActionSuccess{post{id}} "
+             "... on MutationError{message}}}") % literal(entrada, enums)
+        try:
+            res = self.gql(q)["createPost"]
+        except BufferErro:
+            self.campos(); raise
+        if res.get("message") or not res.get("post"):
+            raise BufferErro(res.get("message") or "resposta vazia")
+        return res["post"]["id"]
 
 
-def buffer_campos():
-    """Mostra no log os campos aceitos, para corrigir rápido se o Buffer mudar algo."""
-    try:
-        q = ("query{a:__type(name:\"CreatePostInput\"){inputFields{name}}"
-             " b:__type(name:\"TikTokPostMetadataInput\"){inputFields{name}}}")
-        d = gql(os.environ["BUFFER_API_KEY"], q)
-        nomes = lambda t: ",".join(f["name"] for f in ((d.get(t) or {}).get("inputFields") or []))
-        print(f"BUFFER_CAMPOS CreatePostInput={nomes('a')} TikTok={nomes('b')}")
-    except Exception as e:
-        print(f"BUFFER_CAMPOS indisponível: {e}")
-
-
-def buffer_postar(chave, canal_id, texto, url, quando=None, teste=False):
-    entrada = {"text": texto[:2200], "channelId": canal_id, "schedulingType": "automatic",
-               "assets": [{"video": {"url": url}}]}
-    if teste:
-        entrada.update(mode="addToQueue", saveToDraft=True)
-    else:
-        entrada.update(mode="customScheduled",
-                       dueAt=quando.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"))
-    q = ("mutation{createPost(input:%s){"
-         "... on PostActionSuccess{post{id}} ... on MutationError{message}}}") % literal(entrada)
-    try:
-        res = gql(chave, q)["createPost"]
-    except RuntimeError:
-        buffer_campos(); raise
-    if res.get("message") or not res.get("post"):
-        buffer_campos()
-        raise RuntimeError(f"Buffer recusou: {res.get('message')}")
-    return res["post"]["id"]
+def fila_cheia(msg):
+    return bool(re.search(r"limit|queue|full|maximum|upgrade", msg, re.I))
 
 
 # ---------------------------------------------------------------- modos
-def agendar(job, so, teste):
-    ig_tok = os.environ.get("IG_TOKEN", "").strip()
-    buf = os.environ.get("BUFFER_API_KEY", "").strip()
-    if not ig_tok and not buf:
-        print("AVISO_SEM_CHAVE postagem não configurada (faltam IG_TOKEN e/ou BUFFER_API_KEY)"); return 0
+def preparar():
+    chave = os.environ.get("BUFFER_API_KEY", "").strip()
+    if not chave:
+        print("AVISO_SEM_CHAVE postagem não configurada (falta o segredo BUFFER_API_KEY)")
+        return None, {}
+    buf = Buffer(chave)
+    try:
+        canais = buf.canais()
+    except BufferErro as e:
+        print(f"ERRO_POSTAGEM buffer: {e}"); return None, {}
+    for r in REDES:
+        if r in canais:
+            print(f"{r}={canais[r].get('name')}")
+        else:
+            print(f"AVISO_SEM_REDE {r} não está conectado no Buffer")
+    return buf, canais
 
+
+def enviar(buf, canais, filas, f, it, job):
+    """Tenta agendar um item no Buffer; se a fila de 10 estiver cheia, deixa na reserva."""
+    rede = it["rede"]
+    if esperando_no_buffer(filas, rede) >= LIMITE_FILA:
+        it["status"] = "reserva"; return "reserva"
+    try:
+        it["buffer_id"] = buf.postar(rede, canais[rede]["id"], it["legenda"], url_video(job, it["id"]),
+                                     datetime.fromisoformat(it["quando"]))
+        it["status"] = "agendado"; it.pop("erro", None); return "agendado"
+    except BufferErro as e:
+        if fila_cheia(str(e)):
+            it["status"] = "reserva"; return "reserva"
+        it["tentativas"] = it.get("tentativas", 0) + 1
+        it["erro"] = str(e)[:300]
+        it["status"] = "erro" if it["tentativas"] >= 3 else "reserva"
+        print(f"ERRO_POSTAGEM {job} {it['id']} {rede}: {e}")
+        return "erro"
+
+
+def agendar(job, so, teste):
+    buf, canais = preparar()
+    if not buf:
+        return 0
     cfg = ler(os.path.join("jobs", job, "postagem.json"), None)
     if not cfg:
         print(f"ERRO_POSTAGEM falta jobs/{job}/postagem.json"); return 1
-    fila_path = os.path.join(PASTA_FILA, f"{job}.json")
-    fila = ler(fila_path, {"job": job, "itens": []})
-    ja = {(it["id"], it["rede"]) for it in fila["itens"]}
-
-    redes, uid, canal = [], None, None
-    if ig_tok:
-        try:
-            uid, nome = ig_conta(ig_tok); redes.append("instagram"); print(f"instagram=@{nome}")
-        except Exception as e:
-            print(f"ERRO_POSTAGEM instagram: {e}")
-    if buf:
-        try:
-            canal = buffer_tiktok(buf)
-            if canal:
-                redes.append("tiktok"); print(f"tiktok={canal.get('name')} (Buffer)")
-            else:
-                print("AVISO_SEM_TIKTOK nenhum TikTok conectado no Buffer")
-        except Exception as e:
-            print(f"ERRO_POSTAGEM buffer: {e}")
+    redes = [r for r in REDES if r in canais and (not cfg.get("redes") or r in cfg["redes"])]
     if not redes:
         return 1
-    if cfg.get("redes"):
-        redes = [r for r in redes if r in cfg["redes"]]
-
     filtro = {s.strip() for s in so.split(",") if s.strip()}
     cortes = [c for c in cfg.get("cortes", []) if not filtro or str(c["id"]) in filtro]
+    if not cortes:
+        print("ERRO_POSTAGEM nenhum corte em postagem.json"); return 1
 
     if teste:
-        c = cortes[0]; cid = str(c["id"]); video = video_local(job, cid)
-        if not video:
-            print(f"ERRO_POSTAGEM {cid} sem vídeo"); return 1
-        falhou = 0
+        c = cortes[0]; falhou = 0
         for rede in redes:
             try:
-                if rede == "instagram":
-                    ig_publicar(ig_tok, uid, video, c.get("legenda", ""), teste=True)
-                    print("TESTE_OK instagram: vídeo subiu e foi aceito (nada publicado)")
-                else:
-                    buffer_postar(buf, canal["id"], c.get("legenda", ""),
-                                  f"{MIDIA_BASE}/{job}/corte_{cid}_vertical.mp4", teste=True)
-                    print("TESTE_OK tiktok: rascunho criado no Buffer (nada publicado; pode apagar)")
-            except Exception as e:
-                falhou = 1; print(f"ERRO_POSTAGEM teste {rede}: {e}")
+                buf.postar(rede, canais[rede]["id"], c.get("legenda", ""), url_video(job, c["id"]), teste=True)
+                print(f"TESTE_OK {rede}: rascunho criado no Buffer (nada publicado; pode apagar)")
+            except BufferErro as e:
+                falhou = 1; print(f"ERRO_POSTAGEM teste {rede}: {e}"); buf.campos()
         return falhou
 
-    pend = [c for c in cortes if any((str(c["id"]), r) not in ja for r in redes)]
-    if not pend:
-        print("nada novo para agendar"); return 0
-    slots = proximos_horarios(len(pend), cfg.get("horarios") or HORARIOS, cfg.get("fuso") or FUSO,
-                              horarios_ocupados())
-    for c, quando in zip(pend, slots):
+    f = os.path.join(PASTA_FILA, f"{job}.json")
+    filas = todas_filas()
+    fila = filas.setdefault(f, {"job": job, "itens": []})
+    fila["job"] = job
+    ja = {(it["id"], it["rede"]) for it in fila["itens"]}
+    fuso, horarios = cfg.get("fuso") or FUSO, cfg.get("horarios") or HORARIOS
+    rc = 0
+    for c in cortes:
         cid = str(c["id"]); legenda = (c.get("legenda") or c.get("titulo") or "").strip()
-        feitas = []
-        for rede in redes:
-            if (cid, rede) in ja:
-                continue
-            item = {"id": cid, "rede": rede, "quando": quando.astimezone(timezone.utc).isoformat(),
-                    "legenda": legenda}
-            if rede == "tiktok":
-                try:
-                    item["buffer_id"] = buffer_postar(buf, canal["id"], legenda,
-                                                      f"{MIDIA_BASE}/{job}/corte_{cid}_vertical.mp4", quando)
-                    item["status"] = "agendado"
-                except Exception as e:
-                    print(f"ERRO_POSTAGEM {cid} tiktok: {e}"); continue
-            else:
-                item["status"] = "na_fila"
-            fila["itens"].append(item); feitas.append(rede)
-            gravar(fila_path, fila)
-        if feitas:
-            print(f"AGENDADO {cid} {quando.strftime('%d/%m %H:%M')} {','.join(feitas)}", flush=True)
-    return 0
+        faltam = [r for r in redes if (cid, r) not in ja]
+        if not faltam:
+            continue
+        usados = set().union(*(ocupados(filas, r) for r in faltam))
+        quando = proximo_horario(horarios, fuso, usados)
+        res = {}
+        for rede in faltam:
+            it = {"id": cid, "rede": rede, "quando": quando.astimezone(timezone.utc).isoformat(),
+                  "legenda": legenda}
+            fila["itens"].append(it)
+            res[rede] = enviar(buf, canais, filas, f, it, job)
+            gravar(f, fila)
+        ag = [r for r, s in res.items() if s == "agendado"]
+        rs = [r for r, s in res.items() if s == "reserva"]
+        hora = quando.strftime("%d/%m %H:%M")
+        if ag:
+            print(f"AGENDADO {cid} {hora} {','.join(ag)}", flush=True)
+        if rs:
+            print(f"RESERVA {cid} {hora} {','.join(rs)} (fila do Buffer cheia; entra sozinho quando vagar)", flush=True)
+        if any(s == "erro" for s in res.values()):
+            rc = 1
+    return rc
 
 
 def rodar_fila():
-    tok = os.environ.get("IG_TOKEN", "").strip()
-    arquivos = sorted(glob.glob(os.path.join(PASTA_FILA, "*.json")))
-    vencidos = [(f, i) for f in arquivos for i, it in enumerate(ler(f, {}).get("itens", []))
-                if it["rede"] == "instagram" and it.get("status") == "na_fila"
-                and datetime.fromisoformat(it["quando"]) <= agora()]
-    if not tok:
-        if vencidos:
-            print("AVISO_SEM_CHAVE há Reels na fila mas falta o IG_TOKEN")
+    filas = todas_filas()
+    pend = [(f, it) for f, fl in filas.items() for it in fl["itens"] if it.get("status") == "reserva"]
+    if not pend:
+        print("fila: reserva vazia"); return 0
+    buf, canais = preparar()
+    if not buf:
         return 0
-    ig_cuidar_token(tok)
-    if not vencidos:
-        print("fila: nada na hora"); return 0
-    uid, nome = ig_conta(tok)
-    for f, i in vencidos:
-        fila = ler(f, {}); it = fila["itens"][i]; job = fila["job"]
-        atraso = agora() - datetime.fromisoformat(it["quando"])
-        if atraso > timedelta(hours=20):
-            it["status"] = "perdido"; gravar(f, fila)
-            print(f"ERRO_POSTAGEM {job} {it['id']} instagram: horário passou há mais de 20 h (não postei)"); continue
-        video = video_local(job, it["id"])
-        try:
-            if not video:
-                raise RuntimeError("vídeo não encontrado na Release")
-            it["link"] = ig_publicar(tok, uid, video, it.get("legenda", ""))
-            it["status"] = "postado"; it["postado_em"] = agora().isoformat()
-            print(f"POSTADO {job} {it['id']} instagram {it['link']}", flush=True)
-        except Exception as e:
-            it["tentativas"] = it.get("tentativas", 0) + 1
-            if it["tentativas"] >= 3:
-                it["status"] = "erro"
-            it["erro"] = str(e)[:300]
-            print(f"ERRO_POSTAGEM {job} {it['id']} instagram: {e}", flush=True)
-        gravar(f, fila)
+    pend.sort(key=lambda x: x[1]["quando"])
+    mudou = set()
+    for f, it in pend:
+        if it["rede"] not in canais:
+            continue
+        job = filas[f]["job"]
+        if datetime.fromisoformat(it["quando"]) < agora() + timedelta(minutes=15):
+            # o horário original passou enquanto esperava vaga: pega o próximo livre desta rede
+            cfg = ler(os.path.join("jobs", job, "postagem.json"), {})
+            novo = proximo_horario(cfg.get("horarios") or HORARIOS, cfg.get("fuso") or FUSO,
+                                   ocupados(filas, it["rede"]))
+            it["quando"] = novo.astimezone(timezone.utc).isoformat()
+        st = enviar(buf, canais, filas, f, it, job)
+        mudou.add(f)
+        if st == "agendado":
+            q = datetime.fromisoformat(it["quando"]).astimezone(ZoneInfo(FUSO)).strftime("%d/%m %H:%M")
+            print(f"ENVIADO_DA_RESERVA {job} {it['id']} {it['rede']} {q}", flush=True)
+    for f in mudou:
+        gravar(f, filas[f])
     return 0
+
+
+def midia_necessaria(job_novo=""):
+    """Vídeos que o Buffer ainda vai buscar: reserva, ou agendado até 1 dia depois do horário."""
+    precisa = set()
+    for fl in todas_filas().values():
+        for it in fl["itens"]:
+            st = it.get("status")
+            if st == "reserva" or (st == "agendado" and
+                                   datetime.fromisoformat(it["quando"]) > agora() - timedelta(days=1)):
+                precisa.add(f"{fl['job']}/corte_{it['id']}_vertical.mp4")
+    if job_novo:
+        for p in glob.glob(os.path.join("saida", job_novo, "corte_*_vertical.mp4")):
+            precisa.add(f"{job_novo}/{os.path.basename(p)}")
+    print("\n".join(sorted(precisa)))
 
 
 def main():
@@ -368,10 +342,11 @@ def main():
     ap.add_argument("--so", default="")
     ap.add_argument("--teste", action="store_true")
     ap.add_argument("--fila", action="store_true")
+    ap.add_argument("--midia-necessaria", action="store_true")
     a = ap.parse_args()
-    rc = 0
-    if a.job:
-        rc = agendar(a.job, a.so, a.teste)
+    if a.midia_necessaria:
+        midia_necessaria(a.job); return
+    rc = agendar(a.job, a.so, a.teste) if a.job else 0
     if a.fila or not a.job:
         rc = rodar_fila() or rc
     sys.exit(rc)
