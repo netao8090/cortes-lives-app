@@ -181,7 +181,10 @@ def main():
     estado = {"parede": None, "base": 0.0}
 
     def relogio(agora):
-        return None if estado["parede"] is None else estado["base"] + (agora - estado["parede"])
+        # mensagens de antes da gravação (a API da Kick devolve as últimas) ou durante quedas: descarta
+        if estado["parede"] is None or agora < estado["parede"]:
+            return None
+        return estado["base"] + (agora - estado["parede"])
 
     chat = gravar.Chat(os.path.join(jobdir, "chat.jsonl"), relogio)
     if info["plataforma"] in ("kick", "twitch"):
