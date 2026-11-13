@@ -1,0 +1,17 @@
+{
+ "formato": "vertical",
+ "layout": "auto",
+ "legenda": true,
+ "estilo_legenda": "inteligente",
+ "fonte_legenda": "montserrat",
+ "cortes": [
+  {
+   "id": "01_inteligente",
+   "inicio": "22:39:10",
+   "fim": "22:39:40",
+   "titulo": "FALTOU 2 SEGUNDOS PRO RECORDE",
+   "posicao_legenda": 0.76,
+   "legenda_arquivo": "jobs/2026-11-13-previa-inteligente/legendas/01.json"
+  }
+ ]
+}
