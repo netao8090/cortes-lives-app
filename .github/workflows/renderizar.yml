@@ -35,6 +35,10 @@ jobs:
           pip install -q -U "yt-dlp[default,curl-cffi]" opencv-python-headless numpy
           sudo mkdir -p /usr/share/fonts/truetype/google-fonts
           sudo cp fonts/*.ttf /usr/share/fonts/truetype/google-fonts/ && sudo fc-cache -f > /dev/null
+          # legenda animada (pycaps) só quando o cortes.json pede
+          if python -c "import json,sys; sys.exit(0 if json.load(open('jobs/$JOB/cortes.json')).get('estilo_legenda') else 1)"; then
+            bash scripts/instalar_legendas.sh
+          fi
 
       - name: Baixar trechos e renderizar
         run: python scripts/renderizar.py --job "$JOB" --so "$SO"

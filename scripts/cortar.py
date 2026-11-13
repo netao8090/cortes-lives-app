@@ -168,7 +168,9 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
         y_tit, y_leg = 50, H - 230
         titulo = titulo if plano.get("titulo_horizontal") else ""
 
-    gerar_ass(ass, W, H, titulo, ws, y_leg, y_tit, dur, legenda)
+    # legenda animada (pycaps): aqui só o título; a legenda entra depois, com tempo exato de cada palavra
+    estilo = plano.get("estilo_legenda") if legenda else None
+    gerar_ass(ass, W, H, titulo, ws, y_leg, y_tit, dur, legenda and not estilo)
     vf += f";[v0]subtitles={os.path.basename(ass)}:fontsdir={FONTES}[v]"
     out = os.path.join(saida, f"corte_{cid}_{fmt_out}.mp4")
     fade = min(0.25, dur / 4)
@@ -178,6 +180,26 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
            "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-pix_fmt", "yuv420p",
            "-r", "30", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", os.path.basename(out)]
     subprocess.run(cmd, check=True, cwd=saida)
+
+    if estilo:
+        final = out[:-4] + "_leg.mp4"
+        lcmd = [sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "legendar.py"),
+                out, final, "--estilo", estilo, "--posicao", f"{y_leg / H:.3f}",
+                "--lang", plano.get("idioma", "pt"), "--modelo", plano.get("modelo_legenda", "turbo"),
+                "--destaques", ",".join(c.get("destaques", [])),
+                "--emojis", json.dumps(c.get("emojis", {}), ensure_ascii=False)]
+        if plano.get("vocabulario"):
+            lcmd += ["--prompt", plano["vocabulario"]]
+        if plano.get("som_legenda"):
+            lcmd += ["--som"]
+        r = subprocess.run(lcmd)
+        if r.returncode == 0 and os.path.exists(final):
+            os.replace(final, out)
+        else:
+            # não perde o corte: refaz com a legenda simples
+            print(f"AVISO legenda animada falhou no corte {cid}; usando a legenda simples", flush=True)
+            plano_simples = {k: v for k, v in plano.items() if k != "estilo_legenda"}
+            return render(video, c, plano_simples, trans, saida, fmt_out, sw, sh)
 
     # miniatura: frame no pico de energia do corte
     pico = ini + dur / 2

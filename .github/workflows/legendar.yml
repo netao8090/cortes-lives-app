@@ -1,0 +1,97 @@
+name: 4 - Legendar vídeo
+
+on:
+  workflow_dispatch:
+    inputs:
+      video:
+        description: "Link do vídeo (YouTube, TikTok, Kick, link direto) ou release:<tag>/<arquivo>"
+        required: true
+      nome:
+        description: "Nome do trabalho (vira a Release com o resultado)"
+        required: true
+      estilo:
+        description: "viral, explosivo, gamer ou preset do pycaps"
+        required: false
+        default: "viral"
+      destaques:
+        description: "Palavras-chave separadas por vírgula"
+        required: false
+        default: ""
+      emojis:
+        description: 'JSON palavra→emoji, ex.: {"recorde":"😱"}'
+        required: false
+        default: ""
+      opcoes:
+        description: 'JSON opcional: {"posicao":0.68,"som":true,"lang":"pt","modelo":"turbo","preview":"3,9","prompt":"yuri22, GTA"}'
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  legendar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      VIDEO: ${{ inputs.video }}
+      NOME: ${{ inputs.nome }}
+      ESTILO: ${{ inputs.estilo }}
+      DESTAQUES: ${{ inputs.destaques }}
+      EMOJIS: ${{ inputs.emojis }}
+      OPCOES: ${{ inputs.opcoes }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+          pip install -q -U "yt-dlp[default,curl-cffi]"
+          bash scripts/instalar_legendas.sh
+
+      - name: Baixar o vídeo
+        run: |
+          mkdir -p entrada saida/"$NOME"
+          if [[ "$VIDEO" == release:* ]]; then
+            ref="${VIDEO#release:}"; tag="${ref%%/*}"; arq="${ref#*/}"
+            gh release download "$tag" -p "$arq" -D entrada --clobber
+          elif [[ "$VIDEO" =~ \.(mp4|mov|mkv|webm)(\?|$) ]]; then
+            curl -sSL --fail -o "entrada/video.${BASH_REMATCH[1]}" "$VIDEO"
+          else
+            yt-dlp -q --no-playlist -f "bv*[height<=1920]+ba/b" --merge-output-format mp4 -o "entrada/video.%(ext)s" "$VIDEO"
+          fi
+          ls -la entrada
+
+      - name: Legendar
+        run: |
+          python - <<'EOF'
+          import glob, json, os, subprocess, sys
+          e = os.environ
+          o = json.loads(e.get("OPCOES") or "{}")
+          extra = []
+          if "posicao" in o: extra += ["--posicao", str(o["posicao"])]
+          if o.get("som"): extra += ["--som"]
+          for k in ("lang", "modelo", "preview", "prompt"):
+              if o.get(k): extra += [f"--{k}", str(o[k])]
+          rc = 0
+          for f in sorted(glob.glob("entrada/*")):
+              base = os.path.splitext(os.path.basename(f))[0]
+              cmd = [sys.executable, "scripts/legendar.py", f, f"saida/{e['NOME']}/{base}_legendado.mp4",
+                     "--estilo", e["ESTILO"] or "viral", "--destaques", e.get("DESTAQUES", ""),
+                     "--emojis", e.get("EMOJIS", "")] + extra
+              rc = subprocess.run(cmd).returncode or rc
+          sys.exit(rc)
+          EOF
+
+      - name: Publicar (Release)
+        run: |
+          if gh release view "$NOME" > /dev/null 2>&1; then
+            gh release upload "$NOME" saida/"$NOME"/* --clobber
+          else
+            gh release create "$NOME" saida/"$NOME"/* --title "Legendas: $NOME" --notes "Vídeo legendado automaticamente (estilo $ESTILO)."
+          fi
