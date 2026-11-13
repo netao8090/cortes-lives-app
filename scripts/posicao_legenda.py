@@ -101,8 +101,11 @@ def escolher(objs_por_bloco, linhas_por_bloco, topo_jogo, W, H):
     for objs, lin in zip(objs_por_bloco, linhas_por_bloco):
         cs = {p: sum(custo(o, faixa(p, lin, W, H), topo_jogo, H) for o in objs) / max(1, len(objs)) for p in cands}
         custos.append(cs)
+        anterior = escolhas[-1] if escolhas else PADRAO
         if cs[PADRAO] <= LIMIAR:
             escolhas.append(PADRAO)
+        elif anterior != PADRAO and cs[anterior] <= LIMIAR * 0.5:
+            escolhas.append(anterior)  # já está numa posição livre: fica (não pula sem motivo)
         else:
             # a posição livre mais baixa (mais perto do padrão); se nenhuma estiver livre, a que menos cobre
             livres = [p for p in cands[1:] if cs[p] <= 0.015]
@@ -169,7 +172,7 @@ def analisar_video(video, blocos, topo_jogo, folha=None):
         ts = [de + 0.05, (de + ate) / 2, ate - 0.05]
         frs = quadros(video, ts)
         objs_por_bloco.append([det.detectar(f) if f is not None else [] for f in frs])
-        linhas.append(2 if len(b["texto"]) > 17 else 1)
+        linhas.append(2 if len(b["texto"]) > 20 else 1)  # tamanho C: ~20 caracteres por linha
         meio.append(frs[1])
     escolhas, custos = escolher(objs_por_bloco, linhas, topo_jogo, W, H)
     if folha:

@@ -1,0 +1,415 @@
+{
+ "segments": [
+  {
+   "start": 2.0,
+   "end": 3.12,
+   "text": "Agora, ó, agora",
+   "words": [
+    {
+     "word": "Agora,",
+     "start": 2.0,
+     "end": 2.3
+    },
+    {
+     "word": "ó,",
+     "start": 2.84,
+     "end": 2.89
+    },
+    {
+     "word": "agora",
+     "start": 2.89,
+     "end": 3.12
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 3.16,
+   "end": 4.65,
+   "text": "o Epson, ô louco",
+   "words": [
+    {
+     "word": "o",
+     "start": 3.16,
+     "end": 3.66
+    },
+    {
+     "word": "Epson,",
+     "start": 3.66,
+     "end": 3.96
+    },
+    {
+     "word": "ô",
+     "start": 4.12,
+     "end": 4.17
+    },
+    {
+     "word": "louco",
+     "start": 4.17,
+     "end": 4.65
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 4.82,
+   "end": 5.8,
+   "text": "Mas agora, ó, é faltando",
+   "words": [
+    {
+     "word": "Mas",
+     "start": 4.82,
+     "end": 4.94
+    },
+    {
+     "word": "agora,",
+     "start": 4.94,
+     "end": 5.12
+    },
+    {
+     "word": "ó,",
+     "start": 5.16,
+     "end": 5.24
+    },
+    {
+     "word": "é",
+     "start": 5.32,
+     "end": 5.38
+    },
+    {
+     "word": "faltando",
+     "start": 5.38,
+     "end": 5.8
+    }
+   ],
+   "pos": 0.6
+  },
+  {
+   "start": 5.84,
+   "end": 6.92,
+   "text": "dois segundos, viado",
+   "words": [
+    {
+     "word": "dois",
+     "start": 5.84,
+     "end": 6.12
+    },
+    {
+     "word": "segundos,",
+     "start": 6.12,
+     "end": 6.58
+    },
+    {
+     "word": "viado",
+     "start": 6.7,
+     "end": 6.92
+    }
+   ],
+   "pos": 0.6
+  },
+  {
+   "start": 6.96,
+   "end": 7.5,
+   "text": "Você tem que pegar",
+   "words": [
+    {
+     "word": "Você",
+     "start": 6.96,
+     "end": 7.02
+    },
+    {
+     "word": "tem",
+     "start": 7.02,
+     "end": 7.14
+    },
+    {
+     "word": "que",
+     "start": 7.14,
+     "end": 7.24
+    },
+    {
+     "word": "pegar",
+     "start": 7.24,
+     "end": 7.5
+    }
+   ],
+   "pos": 0.6
+  },
+  {
+   "start": 7.54,
+   "end": 8.72,
+   "text": "faltando dois, pra superar",
+   "words": [
+    {
+     "word": "faltando",
+     "start": 7.54,
+     "end": 7.82
+    },
+    {
+     "word": "dois,",
+     "start": 7.82,
+     "end": 8.04
+    },
+    {
+     "word": "pra",
+     "start": 8.04,
+     "end": 8.22
+    },
+    {
+     "word": "superar",
+     "start": 8.22,
+     "end": 8.72
+    }
+   ],
+   "pos": 0.6
+  },
+  {
+   "start": 8.76,
+   "end": 9.9,
+   "text": "o seu recorde, tá ligado?",
+   "words": [
+    {
+     "word": "o",
+     "start": 8.76,
+     "end": 8.84
+    },
+    {
+     "word": "seu",
+     "start": 8.84,
+     "end": 8.98
+    },
+    {
+     "word": "recorde,",
+     "start": 8.98,
+     "end": 9.5
+    },
+    {
+     "word": "tá",
+     "start": 9.54,
+     "end": 9.59
+    },
+    {
+     "word": "ligado?",
+     "start": 9.59,
+     "end": 9.9
+    }
+   ],
+   "pos": 0.6
+  },
+  {
+   "start": 9.94,
+   "end": 10.92,
+   "text": "E vai ficar nisso, mano",
+   "words": [
+    {
+     "word": "E",
+     "start": 9.94,
+     "end": 10.0
+    },
+    {
+     "word": "vai",
+     "start": 10.0,
+     "end": 10.1
+    },
+    {
+     "word": "ficar",
+     "start": 10.1,
+     "end": 10.3
+    },
+    {
+     "word": "nisso,",
+     "start": 10.3,
+     "end": 10.72
+    },
+    {
+     "word": "mano",
+     "start": 10.78,
+     "end": 10.92
+    }
+   ],
+   "pos": 0.6
+  },
+  {
+   "start": 10.96,
+   "end": 11.67,
+   "text": "— Cadê⁠ o⁠ tempo?⁠",
+   "words": [
+    {
+     "word": "— Cadê⁠",
+     "start": 10.96,
+     "end": 11.18
+    },
+    {
+     "word": "o⁠",
+     "start": 11.18,
+     "end": 11.24
+    },
+    {
+     "word": "tempo?⁠",
+     "start": 11.24,
+     "end": 11.67
+    }
+   ],
+   "pos": 0.6
+  },
+  {
+   "start": 12.55,
+   "end": 13.15,
+   "text": "Quando você pegar",
+   "words": [
+    {
+     "word": "Quando",
+     "start": 12.55,
+     "end": 12.85
+    },
+    {
+     "word": "você",
+     "start": 12.85,
+     "end": 12.99
+    },
+    {
+     "word": "pegar",
+     "start": 12.99,
+     "end": 13.15
+    }
+   ],
+   "pos": 0.6
+  },
+  {
+   "start": 13.19,
+   "end": 14.07,
+   "text": "e acelerar, começa",
+   "words": [
+    {
+     "word": "e",
+     "start": 13.19,
+     "end": 13.45
+    },
+    {
+     "word": "acelerar,",
+     "start": 13.45,
+     "end": 13.59
+    },
+    {
+     "word": "começa",
+     "start": 13.71,
+     "end": 14.07
+    }
+   ],
+   "pos": 0.6
+  },
+  {
+   "start": 14.11,
+   "end": 14.71,
+   "text": "Aí ele",
+   "words": [
+    {
+     "word": "Aí",
+     "start": 14.11,
+     "end": 14.23
+    },
+    {
+     "word": "ele",
+     "start": 14.23,
+     "end": 14.71
+    }
+   ],
+   "pos": 0.6
+  },
+  {
+   "start": 15.96,
+   "end": 16.95,
+   "text": "Vai, vai, vai!",
+   "words": [
+    {
+     "word": "Vai,",
+     "start": 15.96,
+     "end": 16.38
+    },
+    {
+     "word": "vai,",
+     "start": 16.42,
+     "end": 16.56
+    },
+    {
+     "word": "vai!",
+     "start": 16.58,
+     "end": 16.95
+    }
+   ],
+   "pos": 0.6
+  },
+  {
+   "start": 20.44,
+   "end": 21.12,
+   "text": "Aí, ó!",
+   "words": [
+    {
+     "word": "Aí,",
+     "start": 20.44,
+     "end": 20.6
+    },
+    {
+     "word": "ó!",
+     "start": 20.82,
+     "end": 21.12
+    }
+   ],
+   "pos": 0.6
+  },
+  {
+   "start": 21.2,
+   "end": 22.81,
+   "text": "— Não!⁠ Meu⁠ Deus!⁠",
+   "words": [
+    {
+     "word": "— Não!⁠",
+     "start": 21.2,
+     "end": 21.48
+    },
+    {
+     "word": "Meu⁠",
+     "start": 21.98,
+     "end": 22.3
+    },
+    {
+     "word": "Deus!⁠",
+     "start": 22.3,
+     "end": 22.81
+    }
+   ],
+   "pos": 0.6
+  },
+  {
+   "start": 24.59,
+   "end": 25.22,
+   "text": "Já era",
+   "words": [
+    {
+     "word": "Já",
+     "start": 24.59,
+     "end": 24.83
+    },
+    {
+     "word": "era",
+     "start": 24.83,
+     "end": 25.22
+    }
+   ],
+   "pos": 0.6
+  },
+  {
+   "start": 25.35,
+   "end": 25.95,
+   "text": "— Caralho!⁠",
+   "words": [
+    {
+     "word": "— Caralho!⁠",
+     "start": 25.35,
+     "end": 25.95
+    }
+   ],
+   "pos": 0.46
+  }
+ ]
+}
