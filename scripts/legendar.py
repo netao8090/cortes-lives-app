@@ -115,8 +115,8 @@ def montar_config(estilo, trab, destaques, emojis, posicao, som):
         cfg["animations"] = cfg.get("animations", []) + proprio.get("extra_anim", [])
         if proprio.get("max_chars"):
             cfg["splitters"] = [{"type": "split_into_sentences"},
-                                {"type": "limit_by_chars", "min_chars": 8, "max_chars": proprio["max_chars"],
-                                 "avoid_finishing_segment_with_word_shorter_than": 3}]
+                                {"type": "limit_by_chars", "min_chars": 6, "max_chars": proprio["max_chars"],
+                                 "avoid_finishing_segment_with_word_shorter_than": 2}]
         cfg.setdefault("layout", {})["max_number_of_lines"] = 2
         cfg["layout"]["max_width_ratio"] = 0.78
     else:
@@ -167,6 +167,67 @@ def agrupar_emojis(emojis):
     return g
 
 
+MODELOS = {"turbo": "large-v3-turbo", "large": "large-v3"}
+
+
+def limpar_repeticoes(ws, max_rep=3):
+    """Corta laços de alucinação do Whisper ("aí e aí e aí e..." / "vai vai vai vai vai...")."""
+    norm = lambda w: "".join(ch for ch in w["word"].lower() if ch.isalnum())
+    out = []
+    for w in ws:
+        out.append(w)
+        for n in (1, 2, 3):  # padrão de 1, 2 ou 3 palavras repetido
+            k = n * (max_rep + 1)
+            if len(out) >= k:
+                bloco = [norm(x) for x in out[-k:]]
+                if all(bloco[i] == bloco[i % n] for i in range(k)):
+                    out = out[:-n]
+                    break
+    return out
+
+
+def em_blocos(ws, max_chars=24, pausa=0.6):
+    """Agrupa as palavras em falas curtas (pontuação, pausa ou tamanho), para a legenda nunca virar paredão."""
+    segs, atual = [], []
+    for w in ws:
+        if atual and (w["start"] - atual[-1]["end"] > pausa or
+                      len(" ".join(x["word"] for x in atual + [w])) > max_chars):
+            segs.append(atual); atual = []
+        atual.append(w)
+        if w["word"].rstrip().endswith((".", "!", "?")):
+            segs.append(atual); atual = []
+    if atual:
+        segs.append(atual)
+    return {"segments": [{"start": s[0]["start"], "end": s[-1]["end"],
+                          "text": " ".join(x["word"] for x in s), "words": s} for s in segs]}
+
+
+def transcrever(video, lang, modelo, prompt, trab):
+    """faster-whisper com filtro de voz e sem herdar o texto anterior (evita alucinação em barulho de jogo)."""
+    from faster_whisper import WhisperModel
+    m = WhisperModel(MODELOS.get(modelo, modelo), device="cpu", compute_type="int8")
+    segs, info = m.transcribe(
+        video, language=None if lang in ("", "auto") else lang, word_timestamps=True,
+        vad_filter=True, vad_parameters={"min_silence_duration_ms": 400, "speech_pad_ms": 200},
+        condition_on_previous_text=False, initial_prompt=prompt or None, beam_size=5,
+        hallucination_silence_threshold=2.0, temperature=[0.0, 0.2, 0.4])
+    ws = []
+    for s in segs:
+        if s.no_speech_prob > 0.75 and s.avg_logprob < -1.0:
+            continue
+        for w in s.words or []:
+            t = w.word.strip()
+            if t and w.end > w.start and w.probability > 0.15:
+                ws.append({"word": t, "start": round(w.start, 3), "end": round(w.end, 3)})
+    antes = len(ws)
+    ws = limpar_repeticoes(ws)
+    print(f"transcrição: {len(ws)} palavras, idioma {info.language}"
+          + (f" ({antes - len(ws)} repetidas cortadas)" if antes > len(ws) else ""), flush=True)
+    path = os.path.join(trab, "palavras.json")
+    json.dump(em_blocos(ws), open(path, "w", encoding="utf-8"), ensure_ascii=False)
+    return path
+
+
 def normalizar_palavras(path, trab):
     """Aceita whisper_json (segments[].words[]) ou lista simples [{word,start,end}] / [[s,e,w]]."""
     d = json.load(open(path, encoding="utf-8"))
@@ -178,12 +239,9 @@ def normalizar_palavras(path, trab):
             palavras.append({"word": x.get("word") or x.get("text"), "start": x["start"], "end": x["end"]})
         else:
             palavras.append({"word": x[2], "start": x[0], "end": x[1]})
-    palavras = [p for p in palavras if (p["word"] or "").strip()]
-    out = {"segments": [{"start": palavras[0]["start"], "end": palavras[-1]["end"],
-                         "text": " ".join(p["word"].strip() for p in palavras), "words": palavras}]} if palavras \
-        else {"segments": []}
+    palavras = [dict(p, word=p["word"].strip()) for p in palavras if (p["word"] or "").strip()]
     novo = os.path.join(trab, "palavras.json")
-    json.dump(out, open(novo, "w", encoding="utf-8"), ensure_ascii=False)
+    json.dump(em_blocos(limpar_repeticoes(palavras)), open(novo, "w", encoding="utf-8"), ensure_ascii=False)
     return novo
 
 
@@ -210,14 +268,12 @@ def main():
         cfg = montar_config(a.estilo, trab, destaques, emojis, a.posicao, a.som)
         cmd = ["pycaps", "render", "--input", os.path.abspath(a.entrada), "--output", os.path.abspath(a.saida),
                "--config", cfg, "--video-quality", a.qualidade]
-        if a.palavras:
-            cmd += ["--transcript", normalizar_palavras(a.palavras, trab), "--transcript-format", "whisper_json"]
-        else:
-            cmd += ["--whisper-backend", "faster", "--whisper-model", a.modelo]
-            if a.lang and a.lang != "auto":
-                cmd += ["--lang", a.lang]
-            if a.prompt:
-                cmd += ["--whisper-prompt", a.prompt]
+        palavras = normalizar_palavras(a.palavras, trab) if a.palavras else \
+            transcrever(a.entrada, a.lang, a.modelo, a.prompt, trab)
+        if not json.load(open(palavras, encoding="utf-8"))["segments"]:
+            print("AVISO_SEM_FALA nenhuma fala detectada; vídeo copiado sem legenda")
+            shutil.copyfile(a.entrada, a.saida); print(f"LEGENDA_OK {a.saida}"); return
+        cmd += ["--transcript", palavras, "--transcript-format", "whisper_json"]
         if a.preview:
             cmd += ["--preview-time", a.preview]
         print("legendando:", os.path.basename(a.entrada), "estilo", a.estilo, flush=True)
