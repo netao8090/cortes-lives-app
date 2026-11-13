@@ -71,7 +71,7 @@ class Detector:
         return res
 
 
-def faixa(pos, linhas, W, H, alt_linha=0.048):
+def faixa(pos, linhas, W, H, alt_linha=0.045):
     """Retângulo que a legenda ocupa com o topo em `pos` (fração da altura)."""
     y0 = pos * H
     return [W * 0.09, y0 - 0.01 * H, W * 0.91, y0 + linhas * alt_linha * H + 0.012 * H]
@@ -104,7 +104,9 @@ def escolher(objs_por_bloco, linhas_por_bloco, topo_jogo, W, H):
         if cs[PADRAO] <= LIMIAR:
             escolhas.append(PADRAO)
         else:
-            melhor = min(cands, key=lambda p: (round(cs[p], 3), cands.index(p)))
+            # a posição livre mais baixa (mais perto do padrão); se nenhuma estiver livre, a que menos cobre
+            livres = [p for p in cands[1:] if cs[p] <= 0.015]
+            melhor = livres[0] if livres else min(cands, key=lambda p: (round(cs[p], 3), cands.index(p)))
             escolhas.append(melhor if cs[melhor] < cs[PADRAO] * 0.6 else PADRAO)
     # histerese: bloco isolado diferente dos vizinhos iguais acompanha os vizinhos (se não cobrir muito)
     for i in range(1, len(escolhas) - 1):
