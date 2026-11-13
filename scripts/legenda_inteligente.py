@@ -150,11 +150,12 @@ def cmd_transcrever(a):
         # onde a legenda fica em cada bloco, para não cobrir personagem/veículo (só sobe quando precisa)
         sys.path.insert(0, AQUI)
         from posicao_legenda import analisar_video
+        os.makedirs(os.path.dirname(os.path.abspath(a.saida)), exist_ok=True)
         folha = re.sub(r"\.bruto\.json$", "", a.saida) + ".posicoes.jpg"
         poss, _ = analisar_video(a.video, blocos, a.topo_jogo, folha=folha)
         for b, p in zip(blocos, poss):
             b["pos"] = p
-        print(f"POSICOES {sum(1 for p in poss if p != poss[0] or p != 0.76)} bloco(s) fora do padrão; folha: {folha}")
+        print(f"POSICOES {sum(1 for p in poss if p != 0.76)} de {len(poss)} bloco(s) fora de baixo; folha: {folha}")
     out = {"duracao": round(len(audio) / 16000, 2), "idioma": lang, "falantes": n,
            "palavras": ws, "blocos": blocos}
     os.makedirs(os.path.dirname(os.path.abspath(a.saida)), exist_ok=True)
