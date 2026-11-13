@@ -1,0 +1,49 @@
+{
+ "formato": "vertical",
+ "layout": "auto",
+ "legenda": true,
+ "estilo_legenda": "viral",
+ "som_legenda": true,
+ "vocabulario": "yuri22, GTA, recorde",
+ "cortes": [
+  {
+   "inicio": "22:39:10",
+   "fim": "22:39:40",
+   "titulo": "FALTOU 2 SEGUNDOS PRO RECORDE",
+   "destaques": [
+    "recorde",
+    "segundos",
+    "Deus",
+    "cabeça"
+   ],
+   "id": "A_alto",
+   "posicao_legenda": 0.4
+  },
+  {
+   "inicio": "22:39:10",
+   "fim": "22:39:40",
+   "titulo": "FALTOU 2 SEGUNDOS PRO RECORDE",
+   "destaques": [
+    "recorde",
+    "segundos",
+    "Deus",
+    "cabeça"
+   ],
+   "id": "B_meio",
+   "posicao_legenda": 0.55
+  },
+  {
+   "inicio": "22:39:10",
+   "fim": "22:39:40",
+   "titulo": "FALTOU 2 SEGUNDOS PRO RECORDE",
+   "destaques": [
+    "recorde",
+    "segundos",
+    "Deus",
+    "cabeça"
+   ],
+   "id": "C_baixo",
+   "posicao_legenda": 0.76
+  }
+ ]
+}

@@ -27,15 +27,15 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 CSS_VIRAL = """
 .word {
     text-transform: uppercase;
-    font-size: 30px;
+    font-size: 21px;
     color: #FFFFFF;
-    letter-spacing: 0.5px;
-    -webkit-text-stroke: 1.6px #000;
+    letter-spacing: 0.4px;
+    -webkit-text-stroke: 1.2px #000;
     paint-order: stroke fill;
     text-shadow:
-        -2.5px -2.5px 0 #000, 2.5px -2.5px 0 #000, -2.5px 2.5px 0 #000, 2.5px 2.5px 0 #000,
-        0 3px 0 #000, 0 -3px 0 #000, 3px 0 0 #000, -3px 0 0 #000,
-        0 5px 8px rgba(0,0,0,0.55);
+        -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
+        0 2.2px 0 #000, 0 -2.2px 0 #000, 2.2px 0 0 #000, -2.2px 0 0 #000,
+        0 4px 6px rgba(0,0,0,0.55);
     padding: 2px 6px;
 }
 .word-not-narrated-yet { color: #FFFFFF; }

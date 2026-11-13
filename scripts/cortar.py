@@ -184,7 +184,7 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
     if estilo:
         final = out[:-4] + "_leg.mp4"
         lcmd = [sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "legendar.py"),
-                out, final, "--estilo", estilo, "--posicao", f"{y_leg / H:.3f}",
+                out, final, "--estilo", estilo, "--posicao", f"{c.get('posicao_legenda', y_leg / H):.3f}",
                 "--lang", plano.get("idioma", "pt"), "--modelo", plano.get("modelo_legenda", "turbo"),
                 "--destaques", ",".join(c.get("destaques", [])),
                 "--emojis", json.dumps(c.get("emojis", {}), ensure_ascii=False)]
