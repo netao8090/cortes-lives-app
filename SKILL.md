@@ -7,7 +7,7 @@ description: Faz cortes virais de lives da Kick, Twitch ou YouTube só com o lin
 
 O usuário manda **só um link**. Quem baixa, transcreve e renderiza é um "robô" no **GitHub Actions do próprio usuário** (o ambiente do Claude não acessa Kick/Twitch/YouTube). Quem **escolhe os momentos é o Claude**, lendo a transcrição, os picos de voz e os picos do chat. O chat é só termômetro: **nunca aparece no vídeo**.
 
-Resultado: cortes verticais 9:16 em 1080p com a webcam do streamer detectada sozinha (câmera em cima + jogo embaixo, ou retrato quando a câmera está em tela cheia), título no vídeo, legenda palavra por palavra e um `publicacao.md` com título, descrição com crédito e hashtags. Se a postagem automática estiver ligada, os cortes já saem **agendados** no TikTok e no Instagram Reels pela API grátis do Buffer, sem o usuário escolher nada.
+Resultado: cortes verticais 9:16 em 1080p com a webcam do streamer detectada sozinha (câmera em cima + jogo embaixo, ou retrato quando a câmera está em tela cheia) e um `publicacao.md` com título, descrição com crédito e hashtags. **Por padrão o vídeo sai limpo, sem nenhuma frase por cima** (sem título e sem legenda); só ligue `"titulo_no_video": true` ou `"legenda": true` no `cortes.json` se o usuário pedir. Se a postagem automática estiver ligada, os cortes já saem **agendados** no TikTok e no Instagram Reels pela API grátis do Buffer, sem o usuário escolher nada.
 
 Fale com o usuário em linguagem simples, sem jargão técnico. Ele não precisa saber de workflows, ramos ou API.
 
@@ -86,12 +86,12 @@ Critérios de um corte viral:
    - `transcricao.json` juntando as transcrições de todas as partes (ordenado por `start`).
    - `cortes.json`:
      ```json
-     {"formato": "vertical", "layout": "auto", "legenda": true,
+     {"formato": "vertical", "layout": "auto", "legenda": false, "titulo_no_video": false,
       "estilo_legenda": "viral", "som_legenda": true, "vocabulario": "<canal>, <jogo>, <nomes que aparecem>",
       "cortes": [{"id": "01", "inicio": "6:25:21", "fim": "6:26:26", "titulo": "A DESPEDIDA DE SOLTEIRO DELE",
                   "destaques": ["solteiro", "casamento", "noiva"], "emojis": {"noiva": "👰", "casamento": "💍"}}]}
      ```
-     `titulo` aparece no vídeo: até ~35 caracteres, CAIXA ALTA, sem emoji. `formato`: vertical, horizontal ou ambos.
+     `titulo` é um nome curto do corte (só aparece no vídeo se `titulo_no_video` for true; aí: até ~35 caracteres, CAIXA ALTA, sem emoji). `formato`: vertical, horizontal ou ambos.
      **Legenda animada (padrão):** sempre use `estilo_legenda: "viral"` e escolha por corte 3-6 `destaques` e 2-4 `emojis` lendo a fala do trecho (regras e outros estilos em `LEGENDAR.md`). Live em outra língua: `"idioma": "en"` etc. Sem `estilo_legenda`, sai a legenda simples antiga.
      Um corte pode forçar o próprio layout: `"layout": "facecam", "facecam": {"x":0,"y":0,"w":512,"h":288}` (pixels do vídeo original), `"layout": "retrato"` ou `"layout": "blur"`.
    - `publicacao.md`: por corte, título para YouTube/TikTok (≤70 caracteres, com gancho; emoji pode), descrição de 1-2 linhas com **crédito obrigatório** ("Créditos: <canal> – <link do canal>"), hashtags e ideia de thumbnail.
@@ -108,7 +108,7 @@ Critérios de um corte viral:
      - Opcionais (não pergunte ao usuário; use o padrão): `horarios` (padrão `["12:00","15:00","18:00","21:00"]`, 1 corte por horário, a partir do próximo), `fuso` (padrão `America/Sao_Paulo`), `redes` (padrão: todas conectadas). Ordene os cortes do mais forte para o mais fraco — o mais forte sai primeiro.
 2. Commit, `git pull --rebase`, push, dispare `renderizar.yml` (3-6 min).
 3. Baixe a Release e **confira 1-2 quadros de cada corte** (ffmpeg → png → Read) e os `facecam_<id>.jpg` (caixa amarela = webcam achada):
-   - A caixa pegou só a webcam? O título não cobre o rosto? A legenda está limpa?
+   - A caixa pegou só a webcam? Não ficou nenhuma frase por cima do vídeo (a menos que o usuário tenha pedido)?
    - Se errou a webcam: refaça só aquele corte com `facecam` manual (copie a caixa de outro corte da mesma live, que costuma ser igual) usando `inputs[so]=<id>`.
 4. Entregue com `SendUserFile` (os .mp4 + `publicacao.md`) e uma tabela curta: corte, tempo na live, por que é viral — e siga direto para o passo 5, sem perguntar.
 
