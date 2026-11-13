@@ -111,10 +111,10 @@ FONTES_LEGENDA = {  # arquivo em fontes_legenda/, peso, tamanho (mesma altura de
 def aplicar_fonte(cfg, css, trab, fonte):
     arq, peso, tam = FONTES_LEGENDA[fonte]
     res = os.path.join(trab, "res")
-    if cfg.get("resources") and os.path.isdir(cfg["resources"]):
-        shutil.copytree(cfg["resources"], res)
+    if cfg.get("resources") and os.path.isdir(cfg["resources"]) and os.path.abspath(cfg["resources"]) != res:
+        shutil.copytree(cfg["resources"], res, dirs_exist_ok=True)
     else:
-        os.makedirs(res)
+        os.makedirs(res, exist_ok=True)
     shutil.copy(os.path.join(AQUI, "..", "fontes_legenda", arq), res)
     cfg["resources"] = res
     return css + f"""
