@@ -2,7 +2,7 @@
 
 Legenda animada palavra por palavra, gravada no próprio vídeo, feita com o **pycaps** (github.com/francozanardi/pycaps, MIT, versão fixa e revisada em `scripts/instalar_legendas.sh`). Roda de graça no GitHub Actions do usuário.
 
-O que sai: fonte grossa em maiúsculas com contorno preto, a palavra falada em destaque, cada palavra entrando com "pop", palavras-chave em outra cor com animação mais forte, emoji grudado nas palavras escolhidas e, opcionalmente, um "pop" sonoro nos destaques. A transcrição é feita **no próprio trecho** com faster-whisper (modelo `turbo`), com o tempo exato de cada palavra.
+O que sai: fonte grossa em maiúsculas com contorno preto, a palavra falada em destaque, cada palavra entrando com "pop", palavras-chave em outra cor com animação mais forte, emoji grudado nas palavras escolhidas e, opcionalmente, um "pop" sonoro nos destaques. A transcrição é feita **no próprio trecho** com faster-whisper (modelo `turbo`), com o tempo exato de cada palavra, filtro de voz (ignora barulho do jogo) e limpeza das repetições que o Whisper às vezes inventa ("aí e aí e aí e…"). As falas viram blocos curtos de 1 a 3 palavras.
 
 **Princípio:** não pergunte estilo, cor nem posição. Use `viral` e escolha você mesmo os destaques e emojis (é o papel que a IA paga do pycaps faria).
 
@@ -54,6 +54,8 @@ Extraia uns quadros (`ffmpeg -i video.mp4 -vf "fps=1/3,scale=360:-2,tile=6x2" -f
 Se algo estiver errado, ajuste (`posicao`, destaques) e rode de novo. Entregue com `SendUserFile`.
 
 ## Mensagens no log
+- `transcrição: N palavras, idioma xx`: quanto foi entendido. Se vier muito pouco num vídeo cheio de fala, tente `"modelo":"large"` ou confira o idioma.
 - `LEGENDA_OK <arquivo>`: deu certo.
+- `AVISO_SEM_FALA`: não achou fala; o vídeo sai sem legenda.
 - `ERRO_LEGENDA estilo desconhecido`: nome de estilo errado (veja a tabela).
 - `ERRO_LEGENDA pycaps falhou`: leia o erro acima dessa linha. Se faltar biblioteca do sistema (`.so`), acrescente no `apt-get` de `scripts/instalar_legendas.sh`.
