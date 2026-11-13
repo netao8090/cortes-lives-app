@@ -204,10 +204,15 @@ def em_blocos(ws, max_chars=24, pausa=0.6):
 
 def transcrever(video, lang, modelo, prompt, trab):
     """faster-whisper com filtro de voz e sem herdar o texto anterior (evita alucinação em barulho de jogo)."""
+    import numpy as np
     from faster_whisper import WhisperModel
+    # áudio pelo ffmpeg (16 kHz mono), sem depender da versão do PyAV
+    pcm = subprocess.run(["ffmpeg", "-v", "error", "-i", video, "-vn", "-ac", "1", "-ar", "16000",
+                          "-f", "s16le", "-"], capture_output=True, check=True).stdout
+    audio = np.frombuffer(pcm, np.int16).astype(np.float32) / 32768.0
     m = WhisperModel(MODELOS.get(modelo, modelo), device="cpu", compute_type="int8")
     segs, info = m.transcribe(
-        video, language=None if lang in ("", "auto") else lang, word_timestamps=True,
+        audio, language=None if lang in ("", "auto") else lang, word_timestamps=True,
         vad_filter=True, vad_parameters={"min_silence_duration_ms": 400, "speech_pad_ms": 200},
         condition_on_previous_text=False, initial_prompt=prompt or None, beam_size=5,
         hallucination_silence_threshold=2.0, temperature=[0.0, 0.2, 0.4])
