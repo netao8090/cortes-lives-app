@@ -7,6 +7,7 @@ Robô de cortes de live: você manda **só o link** (Twitch, YouTube ou Kick) e 
 2. **Escolher** – o Claude lê a transcrição e escreve `jobs/<nome>/cortes.json` com os melhores momentos.
 3. **Renderizar** (`.github/workflows/renderizar.yml`) – baixa **só os trechos escolhidos** em até 1080p, monta o vídeo vertical 9:16 com legenda e publica tudo numa **Release** com o nome do trabalho.
 
+- **Legendas animadas** (`.github/workflows/legendar.yml` e opção `estilo_legenda` no `cortes.json`) – legenda gravada no vídeo, palavra por palavra, estilo TikTok, com o [pycaps](https://github.com/francozanardi/pycaps): palavra falada em destaque, animação, palavras-chave coloridas e emojis. Serve para os cortes e para qualquer vídeo avulso. Detalhes em `LEGENDAR.md`.
 4. **Postar** (`.github/workflows/postar.yml`) – agenda cada corte no **TikTok** e no **Instagram Reels** pela API grátis do Buffer, com a legenda e as hashtags que o Claude escreve em `jobs/<nome>/postagem.json`. Um corte por horário de pico (12h, 15h, 18h, 21h de Brasília). O que passar do limite de 10 da fila grátis do Buffer fica numa reserva e entra sozinho quando vagar. Rodar de novo não posta duas vezes. Detalhes em `POSTAR.md`.
 
 Os cortes ficam em **Releases** (lado direito da página do repositório).

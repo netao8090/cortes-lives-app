@@ -87,9 +87,12 @@ Critérios de um corte viral:
    - `cortes.json`:
      ```json
      {"formato": "vertical", "layout": "auto", "legenda": true,
-      "cortes": [{"id": "01", "inicio": "6:25:21", "fim": "6:26:26", "titulo": "A DESPEDIDA DE SOLTEIRO DELE"}]}
+      "estilo_legenda": "viral", "som_legenda": true, "vocabulario": "<canal>, <jogo>, <nomes que aparecem>",
+      "cortes": [{"id": "01", "inicio": "6:25:21", "fim": "6:26:26", "titulo": "A DESPEDIDA DE SOLTEIRO DELE",
+                  "destaques": ["solteiro", "casamento", "noiva"], "emojis": {"noiva": "👰", "casamento": "💍"}}]}
      ```
      `titulo` aparece no vídeo: até ~35 caracteres, CAIXA ALTA, sem emoji. `formato`: vertical, horizontal ou ambos.
+     **Legenda animada (padrão):** sempre use `estilo_legenda: "viral"` e escolha por corte 3-6 `destaques` e 2-4 `emojis` lendo a fala do trecho (regras e outros estilos em `LEGENDAR.md`). Live em outra língua: `"idioma": "en"` etc. Sem `estilo_legenda`, sai a legenda simples antiga.
      Um corte pode forçar o próprio layout: `"layout": "facecam", "facecam": {"x":0,"y":0,"w":512,"h":288}` (pixels do vídeo original), `"layout": "retrato"` ou `"layout": "blur"`.
    - `publicacao.md`: por corte, título para YouTube/TikTok (≤70 caracteres, com gancho; emoji pode), descrição de 1-2 linhas com **crédito obrigatório** ("Créditos: <canal> – <link do canal>"), hashtags e ideia de thumbnail.
    - `postagem.json`: os textos no formato que o robô posta (detalhes em `POSTAR.md`). **Sempre crie**, mesmo sem a postagem configurada:
@@ -116,5 +119,5 @@ Assim que os cortes passarem na conferência do passo 4 (só os aprovados; um co
 ## Avisos ao usuário (uma vez, sem sermão)
 - Cortar live de terceiros sem permissão pode gerar strike/desmonetização; muitos streamers liberam cortes com crédito.
 - Em repositório público, as transcrições e os cortes ficam visíveis; os vídeos completos das lives não ficam salvos.
-- A legenda vem da transcrição automática e erra em trechos de gritaria; dá para revisar antes de renderizar.
+- A legenda vem da transcrição automática e pode errar em trechos de gritaria.
 - Com a postagem automática ligada, os cortes vão ao ar sem revisão dele; se quiser ver antes, basta dizer "não posta ainda" e o passo 5 fica para quando ele mandar.
