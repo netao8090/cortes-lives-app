@@ -8,7 +8,8 @@ cortes.json:
   "layout": "blur",                 # blur (jogo inteiro + fundo desfocado) | facecam (câmera em cima, jogo embaixo)
   "zoom": 1.3,                      # >1 aproxima o jogo no layout blur (1.0 = jogo inteiro)
   "facecam": {"x": 1500, "y": 40, "w": 380, "h": 300},   # só para layout facecam, em pixels do vídeo original
-  "legenda": true,
+  "legenda": false,                 # true = legenda da fala por cima do vídeo
+  "titulo_no_video": false,         # true = mostra o "titulo" de cada corte por cima do vídeo
   "cortes": [
     {"id": "01", "inicio": "12:31", "fim": "13:05", "titulo": "ELE NÃO ESPERAVA ISSO"}
   ]
@@ -121,9 +122,10 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
     ini, fim = seg(c["inicio"]), seg(c["fim"])
     dur = fim - ini
     cid = str(c.get("id", "x"))
-    titulo = c.get("titulo", "")
+    # padrão: vídeo limpo, sem frases por cima. "titulo_no_video": true / "legenda": true religam.
+    titulo = c.get("titulo", "") if plano.get("titulo_no_video", False) else ""
     ws = palavras_com_tempo(trans, ini, fim) if trans else []
-    legenda = plano.get("legenda", True) and bool(ws)
+    legenda = plano.get("legenda", False) and bool(ws)
     ass = os.path.join(saida, f"corte_{cid}_{fmt_out}.ass")
 
     if fmt_out == "vertical":
@@ -170,8 +172,12 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
 
     # legenda animada (pycaps): aqui só o título; a legenda entra depois, com tempo exato de cada palavra
     estilo = plano.get("estilo_legenda") if legenda else None
-    gerar_ass(ass, W, H, titulo, ws, y_leg, y_tit, dur, legenda and not estilo)
-    vf += f";[v0]subtitles={os.path.basename(ass)}:fontsdir={FONTES}[v]"
+    texto = bool(titulo) or (legenda and not estilo)
+    if texto:
+        gerar_ass(ass, W, H, titulo, ws, y_leg, y_tit, dur, legenda and not estilo)
+        vf += f";[v0]subtitles={os.path.basename(ass)}:fontsdir={FONTES}[v]"
+    else:
+        vf += ";[v0]null[v]"
     out = os.path.join(saida, f"corte_{cid}_{fmt_out}.mp4")
     fade = min(0.25, dur / 4)
     cmd = ["ffmpeg", "-y", "-v", "error", "-ss", f"{ini:.2f}", "-t", f"{dur:.2f}", "-i", os.path.abspath(video),
@@ -210,7 +216,8 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
             pico = (m["start"] + m["end"]) / 2
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-ss", f"{pico:.2f}", "-i", os.path.abspath(video),
                     "-frames:v", "1", "-q:v", "3", "-vf", "scale=1280:-2", f"thumb_{cid}.jpg"], check=True, cwd=saida)
-    os.remove(ass)
+    if os.path.exists(ass):
+        os.remove(ass)
     return out
 
 

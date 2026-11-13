@@ -1,7 +1,7 @@
 {
  "formato": "vertical",
  "layout": "auto",
- "legenda": true,
+ "legenda": false,
  "cortes": [
   {
    "id": "01",
@@ -28,5 +28,6 @@
     "h": 288
    }
   }
- ]
+ ],
+ "titulo_no_video": false
 }
