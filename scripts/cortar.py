@@ -192,6 +192,8 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
             lcmd += ["--prompt", plano["vocabulario"]]
         if plano.get("som_legenda"):
             lcmd += ["--som"]
+        if c.get("compacta"):
+            lcmd += ["--compacta", c["compacta"]]
         if c.get("legenda_arquivo"):  # legenda inteligente já revisada pelo Claude
             lcmd += ["--palavras", c["legenda_arquivo"], "--blocos"]
         if c.get("fonte_legenda") or plano.get("fonte_legenda"):

@@ -6,12 +6,22 @@
  "fonte_legenda": "montserrat",
  "cortes": [
   {
-   "id": "01_inteligente",
    "inicio": "22:39:10",
    "fim": "22:39:40",
    "titulo": "FALTOU 2 SEGUNDOS PRO RECORDE",
    "posicao_legenda": 0.76,
-   "legenda_arquivo": "jobs/2026-11-13-previa-inteligente/legendas/01.json"
+   "legenda_arquivo": "jobs/2026-11-13-previa-inteligente/legendas/01.json",
+   "id": "01_B",
+   "compacta": "b"
+  },
+  {
+   "inicio": "22:39:10",
+   "fim": "22:39:40",
+   "titulo": "FALTOU 2 SEGUNDOS PRO RECORDE",
+   "posicao_legenda": 0.76,
+   "legenda_arquivo": "jobs/2026-11-13-previa-inteligente/legendas/01.json",
+   "id": "01_C",
+   "compacta": "c"
   }
  ]
 }

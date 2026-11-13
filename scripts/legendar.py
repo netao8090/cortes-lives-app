@@ -123,7 +123,22 @@ def aplicar_fonte(cfg, css, trab, fonte):
 """
 
 
-def montar_config(estilo, trab, destaques, emojis, posicao, som, fonte=None, blocos=False):
+COMPACTA = {  # menor e mais junta; o padding mínimo evita cortar o contorno (o pycaps recorta cada palavra na borda)
+    "b": {"tam": 22, "ls": 0, "pad": "2px 3px", "stroke": 1.1, "sh": 1.7, "blur": 3},
+    "c": {"tam": 19.5, "ls": -0.2, "pad": "2px 2.5px", "stroke": 1.0, "sh": 1.5, "blur": 2.5},
+}
+
+
+def css_compacta(k):
+    v = COMPACTA[k]; sh = v["sh"]; s2 = round(sh * 1.1, 2)
+    return f"""
+.word {{ font-size: {v['tam']}px; letter-spacing: {v['ls']}px; padding: {v['pad']}; -webkit-text-stroke: {v['stroke']}px #000;
+  text-shadow: -{sh}px -{sh}px 0 #000, {sh}px -{sh}px 0 #000, -{sh}px {sh}px 0 #000, {sh}px {sh}px 0 #000,
+    0 {s2}px 0 #000, 0 -{s2}px 0 #000, {s2}px 0 0 #000, -{s2}px 0 0 #000, 0 {round(sh*2,2)}px {v['blur']}px rgba(0,0,0,0.55); }}
+"""
+
+
+def montar_config(estilo, trab, destaques, emojis, posicao, som, fonte=None, blocos=False, compacta=None):
     presets = pasta_presets()
     proprio = ESTILOS.get(estilo)
     base = proprio["base"] if proprio else estilo
@@ -159,6 +174,8 @@ def montar_config(estilo, trab, destaques, emojis, posicao, som, fonte=None, blo
         cfg.pop("resources", None)
     if fonte:
         css = aplicar_fonte(cfg, css, trab, fonte)
+    if compacta:
+        css += css_compacta(compacta)
     css_path = os.path.join(trab, "styles.css")
     open(css_path, "w", encoding="utf-8").write(css)
     cfg["css"] = css_path
@@ -296,6 +313,7 @@ def main():
     ap.add_argument("--posicao", type=float)
     ap.add_argument("--som", action="store_true")
     ap.add_argument("--fonte", choices=sorted(FONTES_LEGENDA))
+    ap.add_argument("--compacta", choices=sorted(COMPACTA))
     ap.add_argument("--blocos", action="store_true", help="--palavras já vem em blocos revisados (legenda_inteligente.py montar)")
     ap.add_argument("--lang", default="pt")
     ap.add_argument("--modelo", default="turbo")
@@ -308,7 +326,7 @@ def main():
     emojis = json.loads(a.emojis) if a.emojis.strip() else {}
     trab = tempfile.mkdtemp(prefix="legenda_")
     try:
-        cfg = montar_config(a.estilo, trab, destaques, emojis, a.posicao, a.som, a.fonte, a.blocos)
+        cfg = montar_config(a.estilo, trab, destaques, emojis, a.posicao, a.som, a.fonte, a.blocos, a.compacta)
         cmd = ["pycaps", "render", "--input", os.path.abspath(a.entrada), "--output", os.path.abspath(a.saida),
                "--config", cfg, "--video-quality", a.qualidade]
         palavras = normalizar_palavras(os.path.abspath(a.palavras), trab) if a.palavras else \
