@@ -71,7 +71,15 @@ CSS_GAMER = """
 ANIM_DESTAQUE = {"type": "zoom_in_primitive", "when": "narration-starts", "what": "word", "duration": 0.18,
                  "init_scale": 0.55, "overshoot": {"amount": 0.18, "peak_at": 0.6}, "tag_condition": "destaque"}
 
+CSS_INTELIGENTE = CSS_VIRAL + """
+.word.destaque, .word.destaque.word-being-narrated { color: inherit; }
+.word.falante2 { font-style: italic; }
+"""
+
 ESTILOS = {
+    "inteligente": {"base": "hype", "css": CSS_INTELIGENTE, "posicao": 0.76, "max_chars": 15,
+                    "anim": [{"type": "fade_in", "when": "narration-starts", "what": "segment", "duration": 0.08},
+                             {"type": "fade_out", "when": "narration-ends", "what": "segment", "duration": 0.1}]},
     "viral": {"base": "hype", "css": CSS_VIRAL, "posicao": 0.66, "max_chars": 15,
               "extra_anim": [ANIM_DESTAQUE]},
     "explosivo": {"base": "explosive", "css": CSS_EXPLOSIVO, "posicao": 0.64, "max_chars": 18,
@@ -115,7 +123,7 @@ def aplicar_fonte(cfg, css, trab, fonte):
 """
 
 
-def montar_config(estilo, trab, destaques, emojis, posicao, som, fonte=None):
+def montar_config(estilo, trab, destaques, emojis, posicao, som, fonte=None, blocos=False):
     presets = pasta_presets()
     proprio = ESTILOS.get(estilo)
     base = proprio["base"] if proprio else estilo
@@ -134,7 +142,8 @@ def montar_config(estilo, trab, destaques, emojis, posicao, som, fonte=None):
     css = open(os.path.join(pdir, cfg.get("css", "styles.css")), encoding="utf-8").read()
     if proprio:
         css += "\n" + proprio["css"]
-        cfg["animations"] = cfg.get("animations", []) + proprio.get("extra_anim", [])
+        cfg["animations"] = proprio["anim"] if "anim" in proprio else \
+            cfg.get("animations", []) + proprio.get("extra_anim", [])
         if proprio.get("max_chars"):
             cfg["splitters"] = [{"type": "split_into_sentences"},
                                 {"type": "limit_by_chars", "min_chars": 6, "max_chars": proprio["max_chars"],
@@ -155,6 +164,9 @@ def montar_config(estilo, trab, destaques, emojis, posicao, som, fonte=None):
     cfg["css"] = css_path
 
     regras = list(cfg.get("tagger_rules", []))
+    if blocos:
+        cfg["splitters"] = []
+        regras.append({"type": "regex", "tag": "falante2", "regex": "[^ ]*\u2060[^ ]*"})
     if destaques:
         f = os.path.join(trab, "destaques.txt")
         open(f, "w", encoding="utf-8").write("\n".join(destaques))
@@ -284,6 +296,7 @@ def main():
     ap.add_argument("--posicao", type=float)
     ap.add_argument("--som", action="store_true")
     ap.add_argument("--fonte", choices=sorted(FONTES_LEGENDA))
+    ap.add_argument("--blocos", action="store_true", help="--palavras já vem em blocos revisados (legenda_inteligente.py montar)")
     ap.add_argument("--lang", default="pt")
     ap.add_argument("--modelo", default="turbo")
     ap.add_argument("--prompt", default="")
@@ -295,10 +308,10 @@ def main():
     emojis = json.loads(a.emojis) if a.emojis.strip() else {}
     trab = tempfile.mkdtemp(prefix="legenda_")
     try:
-        cfg = montar_config(a.estilo, trab, destaques, emojis, a.posicao, a.som, a.fonte)
+        cfg = montar_config(a.estilo, trab, destaques, emojis, a.posicao, a.som, a.fonte, a.blocos)
         cmd = ["pycaps", "render", "--input", os.path.abspath(a.entrada), "--output", os.path.abspath(a.saida),
                "--config", cfg, "--video-quality", a.qualidade]
-        palavras = normalizar_palavras(a.palavras, trab) if a.palavras else \
+        palavras = normalizar_palavras(os.path.abspath(a.palavras), trab) if a.palavras else \
             transcrever(a.entrada, a.lang, a.modelo, a.prompt, trab)
         if not json.load(open(palavras, encoding="utf-8"))["segments"]:
             print("AVISO_SEM_FALA nenhuma fala detectada; vídeo copiado sem legenda")
