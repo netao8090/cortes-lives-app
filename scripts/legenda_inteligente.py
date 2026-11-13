@@ -212,7 +212,8 @@ def cmd_montar(a):
             ws[k]["end"] = max(ws[k]["end"], ws[k]["start"] + 0.05)
         ws[-1]["word"] = re.sub(r"[,.;:]+$", "", ws[-1]["word"]) or ws[-1]["word"]
         if b.get("f", 1) != 1:
-            ws[0]["word"] = TRAVESSAO + ws[0]["word"]
+            if bi == 0 or blocos[bi - 1].get("f", 1) != b.get("f", 1):  # travessão só quando muda quem fala
+                ws[0]["word"] = TRAVESSAO + ws[0]["word"]
             for w in ws:
                 w["word"] += MARCA_F2
         segs.append(ws)

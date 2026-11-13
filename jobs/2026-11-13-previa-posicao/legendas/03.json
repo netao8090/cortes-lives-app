@@ -1,0 +1,521 @@
+{
+ "segments": [
+  {
+   "start": 1.41,
+   "end": 2.83,
+   "text": "E agora, cadê o caminhão",
+   "words": [
+    {
+     "word": "E",
+     "start": 1.41,
+     "end": 1.81
+    },
+    {
+     "word": "agora,",
+     "start": 1.95,
+     "end": 2.19
+    },
+    {
+     "word": "cadê",
+     "start": 2.33,
+     "end": 2.47
+    },
+    {
+     "word": "o",
+     "start": 2.47,
+     "end": 2.53
+    },
+    {
+     "word": "caminhão",
+     "start": 2.53,
+     "end": 2.83
+    }
+   ],
+   "pos": 0.46
+  },
+  {
+   "start": 2.87,
+   "end": 3.94,
+   "text": "de sorvete, mano?",
+   "words": [
+    {
+     "word": "de",
+     "start": 2.87,
+     "end": 2.97
+    },
+    {
+     "word": "sorvete,",
+     "start": 2.97,
+     "end": 3.43
+    },
+    {
+     "word": "mano?",
+     "start": 3.57,
+     "end": 3.94
+    }
+   ],
+   "pos": 0.46
+  },
+  {
+   "start": 4.03,
+   "end": 5.53,
+   "text": "Você foi preso, Matheus",
+   "words": [
+    {
+     "word": "Você",
+     "start": 4.03,
+     "end": 4.41
+    },
+    {
+     "word": "foi",
+     "start": 4.41,
+     "end": 4.65
+    },
+    {
+     "word": "preso,",
+     "start": 4.65,
+     "end": 5.19
+    },
+    {
+     "word": "Matheus",
+     "start": 5.29,
+     "end": 5.53
+    }
+   ],
+   "pos": 0.46
+  },
+  {
+   "start": 5.57,
+   "end": 6.35,
+   "text": "você perdeu tudo",
+   "words": [
+    {
+     "word": "você",
+     "start": 5.57,
+     "end": 5.63
+    },
+    {
+     "word": "perdeu",
+     "start": 5.63,
+     "end": 5.99
+    },
+    {
+     "word": "tudo",
+     "start": 5.99,
+     "end": 6.35
+    }
+   ],
+   "pos": 0.46
+  },
+  {
+   "start": 6.39,
+   "end": 7.84,
+   "text": "saiu na delegacia, filho!",
+   "words": [
+    {
+     "word": "saiu",
+     "start": 6.39,
+     "end": 6.61
+    },
+    {
+     "word": "na",
+     "start": 6.61,
+     "end": 6.69
+    },
+    {
+     "word": "delegacia,",
+     "start": 6.69,
+     "end": 7.33
+    },
+    {
+     "word": "filho!",
+     "start": 7.45,
+     "end": 7.84
+    }
+   ],
+   "pos": 0.46
+  },
+  {
+   "start": 7.99,
+   "end": 9.41,
+   "text": "— Eu⁠ tenho⁠ vendido⁠ 20⁠ já,⁠ mano!⁠",
+   "words": [
+    {
+     "word": "— Eu⁠",
+     "start": 7.99,
+     "end": 8.01
+    },
+    {
+     "word": "tenho⁠",
+     "start": 8.01,
+     "end": 8.09
+    },
+    {
+     "word": "vendido⁠",
+     "start": 8.09,
+     "end": 8.47
+    },
+    {
+     "word": "20⁠",
+     "start": 8.47,
+     "end": 8.83
+    },
+    {
+     "word": "já,⁠",
+     "start": 8.83,
+     "end": 9.13
+    },
+    {
+     "word": "mano!⁠",
+     "start": 9.27,
+     "end": 9.41
+    }
+   ],
+   "pos": 0.46
+  },
+  {
+   "start": 9.45,
+   "end": 11.05,
+   "text": "20? Cê tava nem com 10!",
+   "words": [
+    {
+     "word": "20?",
+     "start": 9.45,
+     "end": 9.73
+    },
+    {
+     "word": "Cê",
+     "start": 9.85,
+     "end": 10.45
+    },
+    {
+     "word": "tava",
+     "start": 10.45,
+     "end": 10.57
+    },
+    {
+     "word": "nem",
+     "start": 10.57,
+     "end": 10.71
+    },
+    {
+     "word": "com",
+     "start": 10.71,
+     "end": 10.87
+    },
+    {
+     "word": "10!",
+     "start": 10.87,
+     "end": 11.05
+    }
+   ],
+   "pos": 0.46
+  },
+  {
+   "start": 11.09,
+   "end": 11.82,
+   "text": "Que 20?",
+   "words": [
+    {
+     "word": "Que",
+     "start": 11.09,
+     "end": 11.25
+    },
+    {
+     "word": "20?",
+     "start": 11.25,
+     "end": 11.82
+    }
+   ],
+   "pos": 0.46
+  },
+  {
+   "start": 12.23,
+   "end": 13.96,
+   "text": "Ele tava na oitava, hein?",
+   "words": [
+    {
+     "word": "Ele",
+     "start": 12.23,
+     "end": 12.63
+    },
+    {
+     "word": "tava",
+     "start": 12.63,
+     "end": 12.83
+    },
+    {
+     "word": "na",
+     "start": 12.83,
+     "end": 12.99
+    },
+    {
+     "word": "oitava,",
+     "start": 12.99,
+     "end": 13.45
+    },
+    {
+     "word": "hein?",
+     "start": 13.45,
+     "end": 13.96
+    }
+   ],
+   "pos": 0.46
+  },
+  {
+   "start": 16.14,
+   "end": 17.42,
+   "text": "Os caras levarem a sério",
+   "words": [
+    {
+     "word": "Os",
+     "start": 16.14,
+     "end": 16.54
+    },
+    {
+     "word": "caras",
+     "start": 16.54,
+     "end": 16.7
+    },
+    {
+     "word": "levarem",
+     "start": 16.7,
+     "end": 16.96
+    },
+    {
+     "word": "a",
+     "start": 16.96,
+     "end": 17.08
+    },
+    {
+     "word": "sério",
+     "start": 17.08,
+     "end": 17.42
+    }
+   ],
+   "pos": 0.46
+  },
+  {
+   "start": 17.46,
+   "end": 18.38,
+   "text": "tryhardar isso aí",
+   "words": [
+    {
+     "word": "tryhardar",
+     "start": 17.46,
+     "end": 17.96
+    },
+    {
+     "word": "isso",
+     "start": 17.96,
+     "end": 18.14
+    },
+    {
+     "word": "aí",
+     "start": 18.14,
+     "end": 18.38
+    }
+   ],
+   "pos": 0.46
+  },
+  {
+   "start": 18.42,
+   "end": 20.44,
+   "text": "colocar prenda no meio, velho",
+   "words": [
+    {
+     "word": "colocar",
+     "start": 18.42,
+     "end": 18.82
+    },
+    {
+     "word": "prenda",
+     "start": 18.82,
+     "end": 19.28
+    },
+    {
+     "word": "no",
+     "start": 19.28,
+     "end": 19.44
+    },
+    {
+     "word": "meio,",
+     "start": 19.44,
+     "end": 19.64
+    },
+    {
+     "word": "velho",
+     "start": 19.76,
+     "end": 20.44
+    }
+   ],
+   "pos": 0.46
+  },
+  {
+   "start": 20.48,
+   "end": 22.07,
+   "text": "— Ô,⁠ cada⁠ vez⁠ que⁠ vocês⁠",
+   "words": [
+    {
+     "word": "— Ô,⁠",
+     "start": 20.48,
+     "end": 20.68
+    },
+    {
+     "word": "cada⁠",
+     "start": 21.58,
+     "end": 21.74
+    },
+    {
+     "word": "vez⁠",
+     "start": 21.74,
+     "end": 21.9
+    },
+    {
+     "word": "que⁠",
+     "start": 21.9,
+     "end": 22.02
+    },
+    {
+     "word": "vocês⁠",
+     "start": 22.02,
+     "end": 22.07
+    }
+   ],
+   "pos": 0.46
+  },
+  {
+   "start": 22.1,
+   "end": 22.64,
+   "text": "perderem⁠ essa,⁠ pô⁠",
+   "words": [
+    {
+     "word": "perderem⁠",
+     "start": 22.1,
+     "end": 22.42
+    },
+    {
+     "word": "essa,⁠",
+     "start": 22.42,
+     "end": 22.52
+    },
+    {
+     "word": "pô⁠",
+     "start": 22.52,
+     "end": 22.64
+    }
+   ],
+   "pos": 0.46
+  },
+  {
+   "start": 22.68,
+   "end": 23.26,
+   "text": "transmissão⁠ é⁠ shot⁠",
+   "words": [
+    {
+     "word": "transmissão⁠",
+     "start": 22.68,
+     "end": 23.02
+    },
+    {
+     "word": "é⁠",
+     "start": 23.02,
+     "end": 23.18
+    },
+    {
+     "word": "shot⁠",
+     "start": 23.18,
+     "end": 23.26
+    }
+   ],
+   "pos": 0.46
+  },
+  {
+   "start": 23.3,
+   "end": 24.88,
+   "text": "Não,⁠ não⁠",
+   "words": [
+    {
+     "word": "Não,⁠",
+     "start": 23.3,
+     "end": 23.48
+    },
+    {
+     "word": "não⁠",
+     "start": 24.58,
+     "end": 24.88
+    }
+   ],
+   "pos": 0.46
+  },
+  {
+   "start": 26.77,
+   "end": 28.46,
+   "text": "Vai, cada um tenta",
+   "words": [
+    {
+     "word": "Vai,",
+     "start": 26.77,
+     "end": 26.99
+    },
+    {
+     "word": "cada",
+     "start": 27.31,
+     "end": 27.81
+    },
+    {
+     "word": "um",
+     "start": 27.96,
+     "end": 28.14
+    },
+    {
+     "word": "tenta",
+     "start": 28.14,
+     "end": 28.46
+    }
+   ],
+   "pos": 0.46
+  },
+  {
+   "start": 28.5,
+   "end": 29.3,
+   "text": "quem menos conseguir",
+   "words": [
+    {
+     "word": "quem",
+     "start": 28.5,
+     "end": 28.7
+    },
+    {
+     "word": "menos",
+     "start": 28.7,
+     "end": 28.94
+    },
+    {
+     "word": "conseguir",
+     "start": 28.94,
+     "end": 29.3
+    }
+   ],
+   "pos": 0.46
+  },
+  {
+   "start": 29.34,
+   "end": 30.23,
+   "text": "vender sorvete",
+   "words": [
+    {
+     "word": "vender",
+     "start": 29.34,
+     "end": 29.58
+    },
+    {
+     "word": "sorvete",
+     "start": 29.58,
+     "end": 30.23
+    }
+   ],
+   "pos": 0.46
+  }
+ ]
+}
