@@ -41,13 +41,13 @@ CSS_VIRAL = """
 .word-not-narrated-yet { color: #FFFFFF; }
 .word-already-narrated { color: #FFFFFF; }
 .word-being-narrated { color: #FFE81F; }
-.word.destaque { color: #39FF6A; font-size: 36px; }
+.word.destaque { color: #39FF6A; }
 .word.destaque.word-being-narrated { color: #39FF6A; }
 """
 
 CSS_EXPLOSIVO = """
 .word { text-transform: uppercase; font-size: 30px; }
-.word.destaque { font-size: 38px; color: #FFFFFF; }
+.word.destaque { color: #FFFFFF; }
 """
 
 CSS_GAMER = """
@@ -64,7 +64,7 @@ CSS_GAMER = """
     color: #00E5FF;
     text-shadow: 0 0 2px #000, 3px 3px 0 #000, 0 0 14px rgba(0,229,255,0.9);
 }
-.word.destaque { color: #FF3DCB; font-size: 35px;
+.word.destaque { color: #FF3DCB;
     text-shadow: 0 0 2px #000, 3px 3px 0 #000, 0 0 14px rgba(255,61,203,0.9); }
 """
 
@@ -72,7 +72,7 @@ ANIM_DESTAQUE = {"type": "zoom_in_primitive", "when": "narration-starts", "what"
                  "init_scale": 0.55, "overshoot": {"amount": 0.18, "peak_at": 0.6}, "tag_condition": "destaque"}
 
 ESTILOS = {
-    "viral": {"base": "hype", "css": CSS_VIRAL, "posicao": 0.66, "max_chars": 16,
+    "viral": {"base": "hype", "css": CSS_VIRAL, "posicao": 0.66, "max_chars": 15,
               "extra_anim": [ANIM_DESTAQUE]},
     "explosivo": {"base": "explosive", "css": CSS_EXPLOSIVO, "posicao": 0.64, "max_chars": 18,
                   "extra_anim": [ANIM_DESTAQUE]},
@@ -118,8 +118,9 @@ def montar_config(estilo, trab, destaques, emojis, posicao, som):
                                 {"type": "limit_by_chars", "min_chars": 8, "max_chars": proprio["max_chars"],
                                  "avoid_finishing_segment_with_word_shorter_than": 3}]
         cfg.setdefault("layout", {})["max_number_of_lines"] = 2
+        cfg["layout"]["max_width_ratio"] = 0.78
     else:
-        css += "\n.word.destaque { filter: brightness(1.15); font-size: 1.2em; }\n"
+        css += "\n.word.destaque { filter: brightness(1.15); }\n"
     css_path = os.path.join(trab, "styles.css")
     open(css_path, "w", encoding="utf-8").write(css)
     cfg["css"] = css_path
