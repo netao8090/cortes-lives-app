@@ -331,9 +331,33 @@ def main():
                "--config", cfg, "--video-quality", a.qualidade]
         palavras = normalizar_palavras(os.path.abspath(a.palavras), trab) if a.palavras else \
             transcrever(a.entrada, a.lang, a.modelo, a.prompt, trab)
-        if not json.load(open(palavras, encoding="utf-8"))["segments"]:
+        segs = json.load(open(palavras, encoding="utf-8"))["segments"]
+        if not segs:
             print("AVISO_SEM_FALA nenhuma fala detectada; vídeo copiado sem legenda")
             shutil.copyfile(a.entrada, a.saida); print(f"LEGENDA_OK {a.saida}"); return
+        grupos = {}
+        for sg in segs:  # blocos com posição própria (posicao_legenda.py): uma passada por posição
+            grupos.setdefault(sg.get("pos", a.posicao), []).append(sg)
+        if len(grupos) > 1:
+            entrada = os.path.abspath(a.entrada)
+            for k, (pos, gs) in enumerate(sorted(grupos.items(), key=lambda x: -len(x[1]))):
+                sub = os.path.join(trab, f"grupo_{k}.json")
+                json.dump({"segments": gs}, open(sub, "w", encoding="utf-8"), ensure_ascii=False)
+                saida_k = os.path.abspath(a.saida) if k == len(grupos) - 1 else os.path.join(trab, f"passada_{k}.mp4")
+                trab_k = os.path.join(trab, f"c{k}")
+                os.makedirs(trab_k)
+                cfg_k = montar_config(a.estilo, trab_k, destaques, emojis, pos, a.som, a.fonte, a.blocos, a.compacta)
+                cmd_k = ["pycaps", "render", "--input", entrada, "--output", saida_k, "--config", cfg_k,
+                         "--video-quality", a.qualidade, "--transcript", sub, "--transcript-format", "whisper_json"]
+                print(f"passada {k + 1}/{len(grupos)}: {len(gs)} bloco(s) na posição {pos}", flush=True)
+                r = subprocess.run(cmd_k, cwd=trab)
+                if r.returncode != 0 or not os.path.exists(saida_k):
+                    sys.exit(f"ERRO_LEGENDA pycaps falhou na passada {k + 1} (código {r.returncode})")
+                entrada = saida_k
+            print(f"LEGENDA_OK {a.saida}"); return
+        if segs[0].get("pos") is not None:
+            cfg = montar_config(a.estilo, trab, destaques, emojis, segs[0]["pos"], a.som, a.fonte, a.blocos, a.compacta)
+            cmd[cmd.index("--config") + 1] = cfg
         cmd += ["--transcript", palavras, "--transcript-format", "whisper_json"]
         if a.preview:
             cmd += ["--preview-time", a.preview]

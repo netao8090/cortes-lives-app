@@ -51,14 +51,16 @@ jobs:
       - name: Modo
         id: modo
         run: |
-          python -c "import json,os; print('bruto=' + ('1' if json.loads(os.environ.get('OPCOES') or '{}').get('bruto') else '0'))" >> "$GITHUB_OUTPUT"
+          python -c "import json,os; o=json.loads(os.environ.get('OPCOES') or '{}'); print('bruto=' + ('1' if o.get('bruto') else '0')); print('teste=' + ('1' if o.get('teste_posicao') else '0'))" >> "$GITHUB_OUTPUT"
 
       - name: Instalar
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
           pip install -q -U "yt-dlp[default,curl-cffi]"
-          if [ "${{ steps.modo.outputs.bruto }}" = "1" ]; then
-            pip install -q faster-whisper sherpa-onnx numpy
+          if [ "${{ steps.modo.outputs.teste }}" = "1" ]; then
+            pip install -q opencv-python-headless numpy
+          elif [ "${{ steps.modo.outputs.bruto }}" = "1" ]; then
+            pip install -q faster-whisper sherpa-onnx numpy opencv-python-headless
             mkdir -p models && cd models
             B=https://github.com/k2-fsa/sherpa-onnx/releases/download
             curl -sSL "$B/speaker-segmentation-models/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2" | tar xj
@@ -67,7 +69,23 @@ jobs:
             bash scripts/instalar_legendas.sh
           fi
 
+      - name: Teste de posição numa imagem
+        if: steps.modo.outputs.teste == '1'
+        run: |
+          python - <<'EOF'
+          import json, os, subprocess, sys
+          o = json.loads(os.environ["OPCOES"])
+          os.makedirs("saida", exist_ok=True)
+          for f in o["teste_posicao"].split(","):
+              nome = os.path.splitext(os.path.basename(f))[0]
+              subprocess.run([sys.executable, "scripts/posicao_legenda.py", "imagem", f, "--topo-jogo", str(o.get("topo_jogo", 0.3)),
+                              "--saida", f"saida/{nome}_posicao.jpg"], check=True)
+          EOF
+          gh release view "$NOME" > /dev/null 2>&1 || gh release create "$NOME" --title "Prévia: $NOME" --notes "Teste de posição da legenda."
+          gh release upload "$NOME" saida/*_posicao.jpg --clobber
+
       - name: Baixar o vídeo
+        if: steps.modo.outputs.teste != '1'
         run: |
           mkdir -p entrada saida/"$NOME"
           if [[ "$VIDEO" == release:* ]]; then
@@ -90,6 +108,7 @@ jobs:
           extra = []
           for k in ("lang", "prompt", "falantes", "limiar"):
               if k in o: extra += [f"--{k}", str(o[k])]
+          if "topo_jogo" in o: extra += ["--topo-jogo", str(o["topo_jogo"])]
           cid = o.get("id", "01")
           f = sorted(glob.glob("entrada/*"))[0]
           saida = f"jobs/{e['NOME']}/legendas/{cid}.bruto.json"
@@ -102,7 +121,7 @@ jobs:
           for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && exit 0; sleep $((i*5)); done
 
       - name: Legendar
-        if: steps.modo.outputs.bruto != '1'
+        if: steps.modo.outputs.bruto != '1' && steps.modo.outputs.teste != '1'
         run: |
           python - <<'EOF'
           import glob, json, os, subprocess, sys
@@ -111,8 +130,9 @@ jobs:
           extra = []
           if "posicao" in o: extra += ["--posicao", str(o["posicao"])]
           if o.get("som"): extra += ["--som"]
-          for k in ("lang", "modelo", "preview", "prompt"):
+          for k in ("lang", "modelo", "preview", "prompt", "palavras", "fonte", "compacta"):
               if o.get(k): extra += [f"--{k}", str(o[k])]
+          if o.get("blocos"): extra += ["--blocos"]
           rc = 0
           for f in sorted(glob.glob("entrada/*")):
               base = os.path.splitext(os.path.basename(f))[0]
@@ -124,7 +144,7 @@ jobs:
           EOF
 
       - name: Publicar (Release)
-        if: steps.modo.outputs.bruto != '1'
+        if: steps.modo.outputs.bruto != '1' && steps.modo.outputs.teste != '1'
         run: |
           if gh release view "$NOME" > /dev/null 2>&1; then
             gh release upload "$NOME" saida/"$NOME"/* --clobber

@@ -146,13 +146,22 @@ def cmd_transcrever(a):
     segs = separar_falantes(audio, a.falantes, a.limiar)
     n = atribuir_falantes(ws, segs)
     blocos = sugerir_blocos(ws)
+    if a.topo_jogo is not None and blocos:
+        # onde a legenda fica em cada bloco, para não cobrir personagem/veículo (só sobe quando precisa)
+        sys.path.insert(0, AQUI)
+        from posicao_legenda import analisar_video
+        folha = re.sub(r"\.bruto\.json$", "", a.saida) + ".posicoes.jpg"
+        poss, _ = analisar_video(a.video, blocos, a.topo_jogo, folha=folha)
+        for b, p in zip(blocos, poss):
+            b["pos"] = p
+        print(f"POSICOES {sum(1 for p in poss if p != poss[0] or p != 0.76)} bloco(s) fora do padrão; folha: {folha}")
     out = {"duracao": round(len(audio) / 16000, 2), "idioma": lang, "falantes": n,
            "palavras": ws, "blocos": blocos}
     os.makedirs(os.path.dirname(os.path.abspath(a.saida)), exist_ok=True)
     json.dump(out, open(a.saida, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(f"TRANSCRITO {len(ws)} palavras, {n} falante(s), {len(blocos)} blocos, idioma {lang}")
     for b in blocos:
-        print(f"  [{b['de']:6.2f}-{b['ate']:6.2f}] F{b['f']}: {b['texto']}")
+        print(f"  [{b['de']:6.2f}-{b['ate']:6.2f}] F{b['f']}{' pos ' + str(b['pos']) if 'pos' in b else ''}: {b['texto']}")
 
 
 # ------------------------------------------------------------------ montagem
@@ -218,8 +227,10 @@ def cmd_montar(a):
         for w in ws:
             w["start"], w["end"] = round(w["start"], 3), round(w["end"], 3)
 
-    out = {"segments": [{"start": ws[0]["start"], "end": ws[-1]["end"],
-                         "text": " ".join(w["word"] for w in ws), "words": ws} for ws in segs]}
+    out = {"segments": [dict({"start": ws[0]["start"], "end": ws[-1]["end"],
+                              "text": " ".join(w["word"] for w in ws), "words": ws},
+                             **({"pos": blocos[i]["pos"]} if blocos[i].get("pos") is not None else {}))
+                        for i, ws in enumerate(segs)]}
     json.dump(out, open(a.saida, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(f"MONTADO {len(segs)} blocos -> {a.saida}")
 
@@ -232,6 +243,7 @@ def main():
     t.add_argument("--lang", default="pt"); t.add_argument("--modelo", default="turbo")
     t.add_argument("--prompt", default=""); t.add_argument("--falantes", type=int, default=0)
     t.add_argument("--limiar", type=float, default=0.6)
+    t.add_argument("--topo-jogo", type=float, help="onde começa a área do jogo (fração da altura); liga a escolha de posição")
     m = sub.add_parser("montar")
     m.add_argument("bruto"); m.add_argument("editado"); m.add_argument("saida")
     m.add_argument("--segurar", type=float, default=0.25, help="segundos que o bloco fica depois da última palavra")

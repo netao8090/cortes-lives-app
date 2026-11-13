@@ -1,0 +1,20 @@
+{
+ "formato": "vertical",
+ "layout": "auto",
+ "legenda": false,
+ "cortes": [
+  {
+   "id": "03_limpo",
+   "inicio": "24:48:05",
+   "fim": "24:48:35",
+   "titulo": "PERDEU O CAMINHÃO DE SORVETE",
+   "layout": "facecam",
+   "facecam": {
+    "x": 0,
+    "y": 0,
+    "w": 512,
+    "h": 288
+   }
+  }
+ ]
+}
