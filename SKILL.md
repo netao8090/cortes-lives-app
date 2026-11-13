@@ -36,6 +36,8 @@ Os workflows do robô:
 | `renderizar.yml` | baixa **só os trechos escolhidos** em 1080p, detecta a webcam **em cada corte**, renderiza e publica numa Release com o nome do job | `job`, `so` (ex.: `01,03`) |
 | `chat.yml` | captura o chat de uma live **ao vivo** até ela acabar (salva no ramo `chat-<job>` a cada 10 min; limite ~5h40 por execução) | `url` (canal), `job`, `max_minutos` |
 | `gravar.yml` | grava vídeo+chat de uma live ao vivo e renderiza do próprio arquivo (use só se o VOD não ficar disponível) | `url`, `job`, `minutos`, `espera` |
+| `gravar-bloco.yml` | grava um bloco ao vivo, transcreve durante, encadeia o próximo bloco, espera os cortes e renderiza (ver 2b) | `url`, `canal`, `bloco` (min), `espera` (min) |
+| `vigia.yml` | a cada ~10 min, liga `gravar-bloco.yml` para os canais de `canais.txt` que entraram ao vivo | — |
 | `postar.yml` | agenda os cortes no TikTok e no Instagram pelo Buffer; roda sozinho de hora em hora para empurrar a reserva quando a fila de 10 do Buffer abre vaga; `teste=sim` confere as contas sem publicar | `job`, `so`, `teste` |
 
 ### Postagem automática
@@ -60,6 +62,20 @@ A Kick não deixa baixar o passado de uma live em andamento; o VOD completo só 
    - Run terminou por tempo com a live no ar → redisparar `chat.yml` com o mesmo job (o arquivo é acrescentado).
    - **Se `inicio_live_ts` mudou** entre checagens, a live **reiniciou** (duas sessões). A sessão antiga já virou VOD: separe o chat dela (mensagens com `ts` < novo início) num ramo `chat-<job>-a` com um `live.json` contendo o início antigo, e analise essa sessão com `chat_de=<job>-a`.
 4. Twitch ao vivo: dá para analisar o VOD direto (já existe durante a live); use `chat.yml` só se quiser o chat como termômetro.
+
+## 2b. Vigia automático + cortes em blocos (live ao vivo, sem ninguém mandar link)
+
+Para quem quer cortes **durante** a live, de bloco em bloco, sem precisar avisar:
+- `canais.txt` na raiz do repositório: uma linha por canal, `link minutos_por_bloco` (ex.: `https://kick.com/yuri22 120`). Para ligar/desligar um canal, edite esse arquivo (commit + push).
+- `vigia.yml` roda sozinho a cada ~10 min: se um canal está ao vivo e não há gravação, dispara `gravar-bloco.yml`.
+- `gravar-bloco.yml` (run-name `gravar <canal>`): grava UM bloco (vídeo + chat), já transcrevendo em pedaços de 10 min durante a gravação; 3 min antes do fim dispara o próximo bloco (sem buraco); ao fechar, salva `jobs/<AAAA-MM-DD-HHMM>-<canal>/` com `transcricao.txt`, `picos.txt`, `chat_picos.txt`, `meta.json` e `status.json` = `{"etapa": "aguardando_cortes"}`. Depois espera até `espera` min (padrão 150) por `cortes.json`; renderiza do próprio arquivo gravado, publica a Release `<job>` e marca `"etapa": "renderizado"`. `cortes.json` com `"cortes": []` = bloco sem nada bom (marca `sem_cortes`).
+- Parar tudo de um canal: tire-o do `canais.txt` e cancele os runs `gravar <canal>` em andamento (`gh api -X POST $R/actions/runs/<id>/cancel`).
+
+**Parte do Claude (tarefa agendada de hora em hora):**
+1. `git pull`; liste `jobs/*/status.json` com `"etapa": "aguardando_cortes"` e sem `cortes.json`.
+2. Para cada bloco: leia `meta.json`, `transcricao.txt`, `picos.txt`, `chat_picos.txt` e escolha os cortes (padrão **3 por bloco**, os mais virais; critérios da seção 3). Tempos são do vídeo do bloco (começam em 00:00). Escreva `cortes.json` (vídeo limpo: `"legenda": false, "titulo_no_video": false`, `"layout": "auto"`) e `publicacao.md`; commit e push **logo**, um bloco por vez (o gravador está esperando).
+3. Espere `status.json` virar `renderizado` (≈5-10 min), baixe a Release `<job>`, confira 1 quadro de cada corte e entregue com `SendUserFile` (status proactive) com uma linha por corte. Depois crie `jobs/<job>/entregue` (commit + push) para não entregar de novo.
+4. Releases `renderizado` sem o arquivo `entregue` (de execuções anteriores): baixe e entregue também.
 
 ## 3. Escolher os cortes (a parte do Claude)
 
