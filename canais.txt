@@ -1,0 +1,3 @@
+# Canais que o vigia acompanha. Um por linha: link  minutos_por_bloco
+# Ex.:
+# https://kick.com/yuri22  120

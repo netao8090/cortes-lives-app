@@ -1,0 +1,61 @@
+name: 5 - Gravar bloco ao vivo
+run-name: gravar ${{ inputs.canal }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Link do canal (Kick ou Twitch)"
+        required: true
+      canal:
+        description: "Nome curto do canal (ex.: yuri22)"
+        required: true
+      bloco:
+        description: "Minutos por bloco"
+        required: false
+        default: "120"
+      espera:
+        description: "Minutos esperando o Claude escolher os cortes"
+        required: false
+        default: "150"
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  bloco:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    env:
+      URL: ${{ inputs.url }}
+      CANAL: ${{ inputs.canal }}
+      BLOCO: ${{ inputs.bloco }}
+      ESPERA: ${{ inputs.espera }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar ferramentas
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+          pip install -q -U "yt-dlp[default,curl-cffi]" curl-cffi sherpa-onnx soundfile numpy websocket-client opencv-python-headless
+          sudo mkdir -p /usr/share/fonts/truetype/google-fonts /mnt/rec && sudo chown "$USER" /mnt/rec
+          sudo cp fonts/*.ttf /usr/share/fonts/truetype/google-fonts/ && sudo fc-cache -f > /dev/null
+          git config user.name "robo-cortes"
+          git config user.email "robo-cortes@users.noreply.github.com"
+
+      - uses: actions/cache@v4
+        with:
+          path: models
+          key: modelos-small-v1
+
+      - name: Baixar modelos de fala
+        run: bash scripts/setup_models.sh small
+
+      - name: Gravar, transcrever, esperar cortes e renderizar
+        run: python scripts/gravar_bloco.py "$URL" --canal "$CANAL" --bloco "$BLOCO" --espera "$ESPERA" --pasta /mnt/rec
