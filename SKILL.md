@@ -7,7 +7,7 @@ description: Faz cortes virais de lives da Kick, Twitch ou YouTube só com o lin
 
 O usuário manda **só um link**. Quem baixa, transcreve e renderiza é um "robô" no **GitHub Actions do próprio usuário** (o ambiente do Claude não acessa Kick/Twitch/YouTube). Quem **escolhe os momentos é o Claude**, lendo a transcrição, os picos de voz e os picos do chat. O chat é só termômetro: **nunca aparece no vídeo**.
 
-Resultado: cortes verticais 9:16 em 1080p com a webcam do streamer detectada sozinha (câmera em cima + jogo embaixo, ou retrato quando a câmera está em tela cheia) e um `publicacao.md` com título, descrição com crédito e hashtags. **Por padrão o vídeo sai limpo, sem nenhuma frase por cima** (sem título e sem legenda). Quando o usuário quiser legenda, ela é a **legenda inteligente** (passo 4b, detalhes em `LEGENDAR.md`): Montserrat Black compacta, só branco com o amarelo passando na palavra dita, quem fala separado, posição que não cobre o personagem, revisada por você antes de gravar. Se a postagem automática estiver ligada, os cortes já saem **agendados** no TikTok e no Instagram Reels pela API grátis do Buffer, sem o usuário escolher nada.
+Resultado: cortes verticais 9:16 em 1080p com a webcam do streamer detectada sozinha (câmera em cima + jogo embaixo, ou retrato quando a câmera está em tela cheia) e um `publicacao.md` com título, descrição com crédito e hashtags. **Por padrão todo corte sai com a legenda inteligente** (passo 4b, detalhes em `LEGENDAR.md`): Montserrat Black compacta, só branco com o amarelo passando na palavra dita, quem fala separado, posição que não cobre o personagem, revisada por você antes de gravar. **O título na caixa amarela fica desligado** (o usuário tirou; só ligue `"titulo_no_video": true` se ele pedir). Corte sem legenda só se o usuário pedir explicitamente. Se a postagem automática estiver ligada, os cortes já saem **agendados** no TikTok e no Instagram Reels pela API grátis do Buffer, sem o usuário escolher nada.
 
 Fale com o usuário em linguagem simples, sem jargão técnico. Ele não precisa saber de workflows, ramos ou API.
 
@@ -75,7 +75,7 @@ Para quem quer cortes **durante** a live, de bloco em bloco, sem precisar avisar
 **Parte do Claude (tarefa agendada de hora em hora):**
 1. `git pull`; liste `jobs/*/status.json` com `"etapa": "aguardando_cortes"` e sem `cortes.json`.
 2. Para cada bloco: leia `meta.json`, `transcricao.txt`, `picos.txt`, `chat_picos.txt` e escolha os cortes (padrão **3 por bloco**, os mais virais; critérios da seção 3). Tempos são do vídeo do bloco (começam em 00:00). Escreva `cortes.json` (vídeo limpo: `"legenda": false, "titulo_no_video": false`, `"layout": "auto"`) e `publicacao.md`; commit e push **logo**, um bloco por vez (o gravador está esperando).
-3. Espere `status.json` virar `renderizado` (≈5-10 min). Se o usuário quer legenda, faça o passo 4b nesse job. Baixe a Release `<job>`, confira 1 quadro de cada corte e entregue com `SendUserFile` (status proactive) com uma linha por corte. Depois crie `jobs/<job>/entregue` (commit + push) para não entregar de novo.
+3. Espere `status.json` virar `renderizado` (≈5-10 min) e faça o passo 4b (legenda inteligente) nesse job. Baixe a Release `<job>`, confira 1 quadro de cada corte e entregue com `SendUserFile` (status proactive) com uma linha por corte. Depois crie `jobs/<job>/entregue` (commit + push) para não entregar de novo.
 4. Releases `renderizado` sem o arquivo `entregue` (de execuções anteriores): baixe e entregue também.
 
 ## 3. Escolher os cortes (a parte do Claude)
@@ -107,7 +107,7 @@ Critérios de um corte viral:
       "vocabulario": "<canal>, <jogo>, <nomes e gírias que aparecem>",
       "cortes": [{"id": "01", "inicio": "6:25:21", "fim": "6:26:26", "titulo": "A DESPEDIDA DE SOLTEIRO DELE"}]}
      ```
-     `titulo` é um nome curto do corte (só aparece no vídeo se `titulo_no_video` for true; aí: até ~35 caracteres, CAIXA ALTA, sem emoji). `formato`: vertical, horizontal ou ambos.
+     `titulo` é um nome curto do corte (não aparece no vídeo: a caixa amarela de título fica desligada, a não ser que o usuário peça `titulo_no_video: true`; aí: até ~35 caracteres, CAIXA ALTA, sem emoji). `formato`: vertical, horizontal ou ambos.
      Deixe sempre `"legenda": false` aqui: a legenda entra depois, no passo 4b (legenda inteligente revisada). `vocabulario` ajuda a transcrição a acertar nomes. Live em outra língua: `"idioma": "en"` etc.
      Um corte pode forçar o próprio layout: `"layout": "facecam", "facecam": {"x":0,"y":0,"w":512,"h":288}` (pixels do vídeo original), `"layout": "retrato"` ou `"layout": "blur"`.
    - `publicacao.md`: por corte, título para YouTube/TikTok (≤70 caracteres, com gancho; emoji pode), descrição de 1-2 linhas com **crédito obrigatório** ("Créditos: <canal> – <link do canal>"), hashtags e ideia de thumbnail.
@@ -126,9 +126,9 @@ Critérios de um corte viral:
 3. Baixe a Release e **confira 1-2 quadros de cada corte** (ffmpeg → png → Read) e os `facecam_<id>.jpg` (caixa amarela = webcam achada):
    - A caixa pegou só a webcam? Não ficou nenhuma frase por cima do vídeo (a menos que o usuário tenha pedido)?
    - Se errou a webcam: refaça só aquele corte com `facecam` manual (copie a caixa de outro corte da mesma live, que costuma ser igual) usando `inputs[so]=<id>`.
-4. Se o usuário quer legenda, faça o passo 4b antes de entregar. Entregue com `SendUserFile` (os .mp4 + `publicacao.md`) e uma tabela curta: corte, tempo na live, por que é viral — e siga direto para o passo 5, sem perguntar.
+4. Faça o passo 4b (legenda inteligente) antes de entregar — é o padrão; pule só se o usuário pedir corte sem legenda. Entregue com `SendUserFile` (os .mp4 + `publicacao.md`) e uma tabela curta: corte, tempo na live, por que é viral — e siga direto para o passo 5, sem perguntar.
 
-## 4b. Legenda inteligente (quando o usuário quer legenda no vídeo)
+## 4b. Legenda inteligente (padrão em todo corte)
 
 Siga **`LEGENDAR.md`**. Resumo:
 1. `legendar.yml` com `etapa=rascunho` e `job=<job>` (todos os cortes da Release; `so` para só alguns). ~2-4 min por corte.
@@ -139,7 +139,7 @@ Não pergunte estilo, tamanho, cor nem posição: está tudo decidido (Montserra
 
 ## 5. Postar sozinho (automático, sem perguntar)
 
-Assim que os cortes passarem na conferência do passo 4 (e do 4b, se tiver legenda; só os aprovados; um corte com webcam errada só vai depois de refeito), siga **`POSTAR.md`**: confirme o `postagem.json`, dispare `postar.yml` e acrescente na tabela de entrega quando cada corte sai. Não pergunte redes, horários nem legendas.
+Assim que os cortes passarem na conferência do passo 4 (e do 4b; só os aprovados; um corte com webcam errada só vai depois de refeito), siga **`POSTAR.md`**: confirme o `postagem.json`, dispare `postar.yml` e acrescente na tabela de entrega quando cada corte sai. Não pergunte redes, horários nem legendas.
 
 ## Avisos ao usuário (uma vez, sem sermão)
 - Cortar live de terceiros sem permissão pode gerar strike/desmonetização; muitos streamers liberam cortes com crédito.
