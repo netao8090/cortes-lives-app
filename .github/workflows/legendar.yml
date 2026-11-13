@@ -48,11 +48,24 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Modo
+        id: modo
+        run: |
+          python -c "import json,os; print('bruto=' + ('1' if json.loads(os.environ.get('OPCOES') or '{}').get('bruto') else '0'))" >> "$GITHUB_OUTPUT"
+
       - name: Instalar
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
           pip install -q -U "yt-dlp[default,curl-cffi]"
-          bash scripts/instalar_legendas.sh
+          if [ "${{ steps.modo.outputs.bruto }}" = "1" ]; then
+            pip install -q faster-whisper sherpa-onnx numpy
+            mkdir -p models && cd models
+            B=https://github.com/k2-fsa/sherpa-onnx/releases/download
+            curl -sSL "$B/speaker-segmentation-models/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2" | tar xj
+            curl -sSL -o nemo_en_titanet_small.onnx "$B/speaker-recongition-models/nemo_en_titanet_small.onnx"
+          else
+            bash scripts/instalar_legendas.sh
+          fi
 
       - name: Baixar o vídeo
         run: |
@@ -67,7 +80,29 @@ jobs:
           fi
           ls -la entrada
 
+      - name: Transcrever e separar vozes (rascunho para o Claude revisar)
+        if: steps.modo.outputs.bruto == '1'
+        run: |
+          python - <<'EOF'
+          import glob, json, os, subprocess, sys
+          e = os.environ
+          o = json.loads(e.get("OPCOES") or "{}")
+          extra = []
+          for k in ("lang", "prompt", "falantes", "limiar"):
+              if k in o: extra += [f"--{k}", str(o[k])]
+          cid = o.get("id", "01")
+          f = sorted(glob.glob("entrada/*"))[0]
+          saida = f"jobs/{e['NOME']}/legendas/{cid}.bruto.json"
+          sys.exit(subprocess.run([sys.executable, "scripts/legenda_inteligente.py", "transcrever", f, saida] + extra).returncode)
+          EOF
+          git config user.name robo-cortes
+          git config user.email robo-cortes@users.noreply.github.com
+          git add jobs/"$NOME"/legendas
+          git commit -qm "legenda bruta: $NOME" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && exit 0; sleep $((i*5)); done
+
       - name: Legendar
+        if: steps.modo.outputs.bruto != '1'
         run: |
           python - <<'EOF'
           import glob, json, os, subprocess, sys
@@ -89,6 +124,7 @@ jobs:
           EOF
 
       - name: Publicar (Release)
+        if: steps.modo.outputs.bruto != '1'
         run: |
           if gh release view "$NOME" > /dev/null 2>&1; then
             gh release upload "$NOME" saida/"$NOME"/* --clobber
