@@ -1,44 +1,52 @@
-name: 4 - Legendar vídeo
+name: 4 - Legendar (legenda inteligente)
 
+# Legenda gravada no vídeo: palavra por palavra, branco + amarelo na palavra dita, quem fala separado,
+# posição que não cobre o personagem. Duas etapas com a revisão do Claude no meio (ver LEGENDAR.md):
+#   rascunho → Claude revisa jobs/<job>/legendas/<id>.bruto.json e cria <id>.json → gravar
 on:
   workflow_dispatch:
     inputs:
+      etapa:
+        description: "rascunho (transcreve + vozes + posição) | gravar (usa a revisão) | direto (sem revisão)"
+        required: true
+        default: "rascunho"
+      job:
+        description: "Nome do trabalho = nome da Release com os cortes (ou a criar, para vídeo avulso)"
+        required: true
       video:
-        description: "Link do vídeo (YouTube, TikTok, Kick, link direto) ou release:<tag>/<arquivo>"
-        required: true
-      nome:
-        description: "Nome do trabalho (vira a Release com o resultado)"
-        required: true
+        description: "Opcional, vídeo avulso: link (YouTube, TikTok, Kick, .mp4) ou release:<tag>/<arquivo>"
+        required: false
+        default: ""
+      so:
+        description: "Opcional: só estes cortes (ex.: 01,03)"
+        required: false
+        default: ""
       estilo:
-        description: "viral, explosivo, gamer ou preset do pycaps"
+        description: "inteligente (aprovado) ou outro estilo do LEGENDAR.md"
         required: false
-        default: "viral"
-      destaques:
-        description: "Palavras-chave separadas por vírgula"
-        required: false
-        default: ""
-      emojis:
-        description: 'JSON palavra→emoji, ex.: {"recorde":"😱"}'
-        required: false
-        default: ""
+        default: "inteligente"
       opcoes:
-        description: 'JSON opcional: {"posicao":0.68,"som":true,"lang":"pt","modelo":"turbo","preview":"3,9","prompt":"yuri22, GTA"}'
+        description: 'JSON opcional: {"lang":"pt","prompt":"nomes, gírias","topo_jogo":0.33,"falantes":2}'
         required: false
         default: ""
 
 permissions:
   contents: write
 
+concurrency:
+  group: legendar-${{ inputs.job }}
+  cancel-in-progress: false
+
 jobs:
   legendar:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     env:
+      ETAPA: ${{ inputs.etapa }}
+      JOB: ${{ inputs.job }}
       VIDEO: ${{ inputs.video }}
-      NOME: ${{ inputs.nome }}
+      SO: ${{ inputs.so }}
       ESTILO: ${{ inputs.estilo }}
-      DESTAQUES: ${{ inputs.destaques }}
-      EMOJIS: ${{ inputs.emojis }}
       OPCOES: ${{ inputs.opcoes }}
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -52,46 +60,26 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
           pip install -q -U "yt-dlp[default,curl-cffi]"
-          bash scripts/instalar_legendas.sh
-
-      - name: Baixar o vídeo
-        run: |
-          mkdir -p entrada saida/"$NOME"
-          if [[ "$VIDEO" == release:* ]]; then
-            ref="${VIDEO#release:}"; tag="${ref%%/*}"; arq="${ref#*/}"
-            gh release download "$tag" -p "$arq" -D entrada --clobber
-          elif [[ "$VIDEO" =~ \.(mp4|mov|mkv|webm)(\?|$) ]]; then
-            curl -sSL --fail -o "entrada/video.${BASH_REMATCH[1]}" "$VIDEO"
+          if [ "$ETAPA" = "rascunho" ]; then
+            pip install -q faster-whisper sherpa-onnx numpy opencv-python-headless
+            mkdir -p models && cd models
+            B=https://github.com/k2-fsa/sherpa-onnx/releases/download
+            curl -sSL "$B/speaker-segmentation-models/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2" | tar xj
+            curl -sSL -o nemo_en_titanet_small.onnx "$B/speaker-recongition-models/nemo_en_titanet_small.onnx"
+            curl -sSL -o yolox.onnx "https://github.com/opencv/opencv_zoo/raw/main/models/object_detection_yolox/object_detection_yolox_2022nov.onnx"
           else
-            yt-dlp -q --no-playlist -f "bv*[height<=1920]+ba/b" --merge-output-format mp4 -o "entrada/video.%(ext)s" "$VIDEO"
+            bash scripts/instalar_legendas.sh
           fi
-          ls -la entrada
 
       - name: Legendar
-        run: |
-          python - <<'EOF'
-          import glob, json, os, subprocess, sys
-          e = os.environ
-          o = json.loads(e.get("OPCOES") or "{}")
-          extra = []
-          if "posicao" in o: extra += ["--posicao", str(o["posicao"])]
-          if o.get("som"): extra += ["--som"]
-          for k in ("lang", "modelo", "preview", "prompt"):
-              if o.get(k): extra += [f"--{k}", str(o[k])]
-          rc = 0
-          for f in sorted(glob.glob("entrada/*")):
-              base = os.path.splitext(os.path.basename(f))[0]
-              cmd = [sys.executable, "scripts/legendar.py", f, f"saida/{e['NOME']}/{base}_legendado.mp4",
-                     "--estilo", e["ESTILO"] or "viral", "--destaques", e.get("DESTAQUES", ""),
-                     "--emojis", e.get("EMOJIS", "")] + extra
-              rc = subprocess.run(cmd).returncode or rc
-          sys.exit(rc)
-          EOF
+        run: python scripts/legenda_job.py "$ETAPA" --job "$JOB" --so "$SO" --video "$VIDEO" --estilo "${ESTILO:-inteligente}" --opcoes "$OPCOES"
 
-      - name: Publicar (Release)
+      - name: Salvar rascunho para a revisão
+        if: always() && env.ETAPA == 'rascunho'
         run: |
-          if gh release view "$NOME" > /dev/null 2>&1; then
-            gh release upload "$NOME" saida/"$NOME"/* --clobber
-          else
-            gh release create "$NOME" saida/"$NOME"/* --title "Legendas: $NOME" --notes "Vídeo legendado automaticamente (estilo $ESTILO)."
-          fi
+          [ -d jobs/"$JOB"/legendas ] || exit 0
+          git config user.name robo-cortes
+          git config user.email robo-cortes@users.noreply.github.com
+          git add jobs/"$JOB"/legendas
+          git commit -qm "legenda (rascunho): $JOB" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && exit 0; sleep $((i*5)); done

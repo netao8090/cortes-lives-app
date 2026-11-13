@@ -137,6 +137,7 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
             x0 = max(0, min(sw - cw, cx - cw // 2))
             vf = f"[0:v]crop={cw}:{sh}:{x0}:0,scale={W}:{H}:flags=lanczos,unsharp=5:5:0.5:5:5:0[v0]"
             y_tit, y_leg = 230, int(H * 0.72)
+            topo_jogo = 0.12
         elif plano.get("layout") == "facecam" and plano.get("facecam"):
             fc = plano["facecam"]
             # altura da câmera segue o formato da janela da webcam (sem distorcer)
@@ -152,6 +153,7 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
                   f"[cam][jogo]vstack[v0]")
             # título na emenda câmera/jogo (não cobre o rosto); legenda no meio do jogo
             y_tit, y_leg = hc - 48, int(H * 0.70)
+            topo_jogo = (hc + 20) / H
         else:
             z = float(plano.get("zoom", 1.3))
             fh = int(W / (sw / sh) * z) // 2 * 2
@@ -164,10 +166,12 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
             topo_fg = (H - fh) // 2
             y_tit = max(topo_fg - 230, 120)
             y_leg = topo_fg + fh + 70
+            topo_jogo = topo_fg / H
     else:
         W, H = 1920, 1080
         vf = f"[0:v]scale={W}:{H}:force_original_aspect_ratio=decrease,pad={W}:{H}:(ow-iw)/2:(oh-ih)/2[v0]"
         y_tit, y_leg = 50, H - 230
+        topo_jogo = 0.1
         titulo = titulo if plano.get("titulo_horizontal") else ""
 
     # legenda animada (pycaps): aqui só o título; a legenda entra depois, com tempo exato de cada palavra
@@ -179,6 +183,9 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
     else:
         vf += ";[v0]null[v]"
     out = os.path.join(saida, f"corte_{cid}_{fmt_out}.mp4")
+    with open(os.path.join(saida, f"corte_{cid}_{fmt_out}.layout.json"), "w") as f:
+        json.dump({"layout": plano.get("layout", "blur"), "topo_jogo": round(topo_jogo, 3),
+                   "posicao_padrao": round(y_leg / H, 3)}, f)
     fade = min(0.25, dur / 4)
     cmd = ["ffmpeg", "-y", "-v", "error", "-ss", f"{ini:.2f}", "-t", f"{dur:.2f}", "-i", os.path.abspath(video),
            "-filter_complex", vf, "-map", "[v]", "-map", "0:a?",
@@ -190,7 +197,7 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
     if estilo:
         final = out[:-4] + "_leg.mp4"
         lcmd = [sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "legendar.py"),
-                out, final, "--estilo", estilo, "--posicao", f"{y_leg / H:.3f}",
+                out, final, "--estilo", estilo, "--posicao", f"{c.get('posicao_legenda', y_leg / H):.3f}",
                 "--lang", plano.get("idioma", "pt"), "--modelo", plano.get("modelo_legenda", "turbo"),
                 "--destaques", ",".join(c.get("destaques", [])),
                 "--emojis", json.dumps(c.get("emojis", {}), ensure_ascii=False)]
@@ -198,6 +205,12 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
             lcmd += ["--prompt", plano["vocabulario"]]
         if plano.get("som_legenda"):
             lcmd += ["--som"]
+        for chave, op in (("fonte_legenda", "--fonte"), ("compacta", "--compacta")):
+            v = c.get(chave) or plano.get(chave)
+            if v:
+                lcmd += [op, v]
+        if c.get("legenda_arquivo"):  # legenda inteligente já revisada pelo Claude (legenda_inteligente.py montar)
+            lcmd += ["--palavras", c["legenda_arquivo"], "--blocos"]
         r = subprocess.run(lcmd)
         if r.returncode == 0 and os.path.exists(final):
             os.replace(final, out)

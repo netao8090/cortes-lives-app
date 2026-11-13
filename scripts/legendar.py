@@ -8,7 +8,7 @@ faz esse papel é o Claude, passando --destaques e --emojis. Sem eles, a legenda
 
 Uso:
   python3 scripts/legendar.py ENTRADA.mp4 SAIDA.mp4
-      [--estilo viral]                    viral (padrão), explosivo, gamer, ou um preset do pycaps:
+      [--estilo inteligente]              inteligente (padrão aprovado), viral, explosivo, gamer, ou um preset do pycaps:
                                           hype, explosive, word-focus, line-focus, vibrant, retro-gaming,
                                           minimalist, neo-minimal, classic, default, fast
       [--palavras palavras.json]          tempos por palavra já prontos (formato whisper: segments[].words[])
@@ -27,15 +27,15 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 CSS_VIRAL = """
 .word {
     text-transform: uppercase;
-    font-size: 30px;
+    font-size: 21px;
     color: #FFFFFF;
-    letter-spacing: 0.5px;
-    -webkit-text-stroke: 1.6px #000;
+    letter-spacing: 0.4px;
+    -webkit-text-stroke: 1.2px #000;
     paint-order: stroke fill;
     text-shadow:
-        -2.5px -2.5px 0 #000, 2.5px -2.5px 0 #000, -2.5px 2.5px 0 #000, 2.5px 2.5px 0 #000,
-        0 3px 0 #000, 0 -3px 0 #000, 3px 0 0 #000, -3px 0 0 #000,
-        0 5px 8px rgba(0,0,0,0.55);
+        -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000,
+        0 2.2px 0 #000, 0 -2.2px 0 #000, 2.2px 0 0 #000, -2.2px 0 0 #000,
+        0 4px 6px rgba(0,0,0,0.55);
     padding: 2px 6px;
 }
 .word-not-narrated-yet { color: #FFFFFF; }
@@ -71,7 +71,17 @@ CSS_GAMER = """
 ANIM_DESTAQUE = {"type": "zoom_in_primitive", "when": "narration-starts", "what": "word", "duration": 0.18,
                  "init_scale": 0.55, "overshoot": {"amount": 0.18, "peak_at": 0.6}, "tag_condition": "destaque"}
 
+CSS_INTELIGENTE = CSS_VIRAL + """
+.word.destaque, .word.destaque.word-being-narrated { color: inherit; }
+.word.falante2 { font-style: italic; }
+"""
+
 ESTILOS = {
+    # aprovado: Montserrat Black, tamanho C, branco + amarelo na palavra dita, embaixo, sem pulinhos
+    "inteligente": {"base": "hype", "css": CSS_INTELIGENTE, "posicao": 0.76, "max_chars": 15,
+                    "fonte": "montserrat", "compacta": "c",
+                    "anim": [{"type": "fade_in", "when": "narration-starts", "what": "segment", "duration": 0.08},
+                             {"type": "fade_out", "when": "narration-ends", "what": "segment", "duration": 0.1}]},
     "viral": {"base": "hype", "css": CSS_VIRAL, "posicao": 0.66, "max_chars": 15,
               "extra_anim": [ANIM_DESTAQUE]},
     "explosivo": {"base": "explosive", "css": CSS_EXPLOSIVO, "posicao": 0.64, "max_chars": 18,
@@ -93,7 +103,44 @@ def pasta_presets():
     return p
 
 
-def montar_config(estilo, trab, destaques, emojis, posicao, som):
+FONTES_LEGENDA = {  # arquivo em fontes_legenda/, peso, tamanho (mesma altura de letra da prévia)
+    "montserrat": ("montserrat-latin-900-normal.woff2", 900, 26.4),
+    "anton": ("anton-latin-400-normal.woff2", 400, 21.5),
+    "bangers": ("bangers-latin-400-normal.woff2", 400, 25.0),
+}
+
+
+def aplicar_fonte(cfg, css, trab, fonte):
+    arq, peso, tam = FONTES_LEGENDA[fonte]
+    res = os.path.join(trab, "res")
+    if cfg.get("resources") and os.path.isdir(cfg["resources"]) and os.path.abspath(cfg["resources"]) != res:
+        shutil.copytree(cfg["resources"], res, dirs_exist_ok=True)
+    else:
+        os.makedirs(res, exist_ok=True)
+    shutil.copy(os.path.join(AQUI, "..", "fontes_legenda", arq), res)
+    cfg["resources"] = res
+    return css + f"""
+@font-face {{ font-family: 'Leg'; src: url('{arq}'); font-weight: {peso}; }}
+.word {{ font-family: 'Leg'; font-weight: {peso}; font-size: {tam}px; }}
+"""
+
+
+COMPACTA = {  # menor e mais junta; o padding mínimo evita cortar o contorno (o pycaps recorta cada palavra na borda)
+    "b": {"tam": 22, "ls": 0, "pad": "2px 3px", "stroke": 1.1, "sh": 1.7, "blur": 3},
+    "c": {"tam": 19.5, "ls": -0.2, "pad": "2px 2.5px", "stroke": 1.0, "sh": 1.5, "blur": 2.5},
+}
+
+
+def css_compacta(k):
+    v = COMPACTA[k]; sh = v["sh"]; s2 = round(sh * 1.1, 2)
+    return f"""
+.word {{ font-size: {v['tam']}px; letter-spacing: {v['ls']}px; padding: {v['pad']}; -webkit-text-stroke: {v['stroke']}px #000;
+  text-shadow: -{sh}px -{sh}px 0 #000, {sh}px -{sh}px 0 #000, -{sh}px {sh}px 0 #000, {sh}px {sh}px 0 #000,
+    0 {s2}px 0 #000, 0 -{s2}px 0 #000, {s2}px 0 0 #000, -{s2}px 0 0 #000, 0 {round(sh*2,2)}px {v['blur']}px rgba(0,0,0,0.55); }}
+"""
+
+
+def montar_config(estilo, trab, destaques, emojis, posicao, som, fonte=None, blocos=False, compacta=None):
     presets = pasta_presets()
     proprio = ESTILOS.get(estilo)
     base = proprio["base"] if proprio else estilo
@@ -112,7 +159,8 @@ def montar_config(estilo, trab, destaques, emojis, posicao, som):
     css = open(os.path.join(pdir, cfg.get("css", "styles.css")), encoding="utf-8").read()
     if proprio:
         css += "\n" + proprio["css"]
-        cfg["animations"] = cfg.get("animations", []) + proprio.get("extra_anim", [])
+        cfg["animations"] = proprio["anim"] if "anim" in proprio else \
+            cfg.get("animations", []) + proprio.get("extra_anim", [])
         if proprio.get("max_chars"):
             cfg["splitters"] = [{"type": "split_into_sentences"},
                                 {"type": "limit_by_chars", "min_chars": 6, "max_chars": proprio["max_chars"],
@@ -121,16 +169,23 @@ def montar_config(estilo, trab, destaques, emojis, posicao, som):
         cfg["layout"]["max_width_ratio"] = 0.78
     else:
         css += "\n.word.destaque { filter: brightness(1.15); }\n"
-    css_path = os.path.join(trab, "styles.css")
-    open(css_path, "w", encoding="utf-8").write(css)
-    cfg["css"] = css_path
     res = os.path.join(pdir, cfg.get("resources", "resources"))
     if os.path.isdir(res):
         cfg["resources"] = res
     else:
         cfg.pop("resources", None)
+    if fonte:
+        css = aplicar_fonte(cfg, css, trab, fonte)
+    if compacta:
+        css += css_compacta(compacta)
+    css_path = os.path.join(trab, "styles.css")
+    open(css_path, "w", encoding="utf-8").write(css)
+    cfg["css"] = css_path
 
     regras = list(cfg.get("tagger_rules", []))
+    if blocos:
+        cfg["splitters"] = []
+        regras.append({"type": "regex", "tag": "falante2", "regex": "[^ ]*\u2060[^ ]*"})
     if destaques:
         f = os.path.join(trab, "destaques.txt")
         open(f, "w", encoding="utf-8").write("\n".join(destaques))
@@ -253,12 +308,15 @@ def normalizar_palavras(path, trab):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("entrada"); ap.add_argument("saida")
-    ap.add_argument("--estilo", default="viral")
+    ap.add_argument("--estilo", default="inteligente")
     ap.add_argument("--palavras")
     ap.add_argument("--destaques", default="")
     ap.add_argument("--emojis", default="")
     ap.add_argument("--posicao", type=float)
     ap.add_argument("--som", action="store_true")
+    ap.add_argument("--fonte", choices=sorted(FONTES_LEGENDA))
+    ap.add_argument("--compacta", choices=sorted(COMPACTA))
+    ap.add_argument("--blocos", action="store_true", help="--palavras já vem em blocos revisados (legenda_inteligente.py montar)")
     ap.add_argument("--lang", default="pt")
     ap.add_argument("--modelo", default="turbo")
     ap.add_argument("--prompt", default="")
@@ -266,18 +324,45 @@ def main():
     ap.add_argument("--preview", default="", help="ex.: 3,9 (só esse trecho, baixa qualidade)")
     a = ap.parse_args()
 
+    padrao = ESTILOS.get(a.estilo, {})
+    a.fonte = a.fonte or padrao.get("fonte")
+    a.compacta = a.compacta or padrao.get("compacta")
     destaques = [w.strip() for w in a.destaques.split(",") if w.strip()]
     emojis = json.loads(a.emojis) if a.emojis.strip() else {}
     trab = tempfile.mkdtemp(prefix="legenda_")
     try:
-        cfg = montar_config(a.estilo, trab, destaques, emojis, a.posicao, a.som)
+        cfg = montar_config(a.estilo, trab, destaques, emojis, a.posicao, a.som, a.fonte, a.blocos, a.compacta)
         cmd = ["pycaps", "render", "--input", os.path.abspath(a.entrada), "--output", os.path.abspath(a.saida),
                "--config", cfg, "--video-quality", a.qualidade]
-        palavras = normalizar_palavras(a.palavras, trab) if a.palavras else \
+        palavras = normalizar_palavras(os.path.abspath(a.palavras), trab) if a.palavras else \
             transcrever(a.entrada, a.lang, a.modelo, a.prompt, trab)
-        if not json.load(open(palavras, encoding="utf-8"))["segments"]:
+        segs = json.load(open(palavras, encoding="utf-8"))["segments"]
+        if not segs:
             print("AVISO_SEM_FALA nenhuma fala detectada; vídeo copiado sem legenda")
             shutil.copyfile(a.entrada, a.saida); print(f"LEGENDA_OK {a.saida}"); return
+        grupos = {}
+        for sg in segs:  # blocos com posição própria (posicao_legenda.py): uma passada por posição
+            grupos.setdefault(sg.get("pos", a.posicao), []).append(sg)
+        if len(grupos) > 1:
+            entrada = os.path.abspath(a.entrada)
+            for k, (pos, gs) in enumerate(sorted(grupos.items(), key=lambda x: -len(x[1]))):
+                sub = os.path.join(trab, f"grupo_{k}.json")
+                json.dump({"segments": gs}, open(sub, "w", encoding="utf-8"), ensure_ascii=False)
+                saida_k = os.path.abspath(a.saida) if k == len(grupos) - 1 else os.path.join(trab, f"passada_{k}.mp4")
+                trab_k = os.path.join(trab, f"c{k}")
+                os.makedirs(trab_k)
+                cfg_k = montar_config(a.estilo, trab_k, destaques, emojis, pos, a.som, a.fonte, a.blocos, a.compacta)
+                cmd_k = ["pycaps", "render", "--input", entrada, "--output", saida_k, "--config", cfg_k,
+                         "--video-quality", a.qualidade, "--transcript", sub, "--transcript-format", "whisper_json"]
+                print(f"passada {k + 1}/{len(grupos)}: {len(gs)} bloco(s) na posição {pos}", flush=True)
+                r = subprocess.run(cmd_k, cwd=trab)
+                if r.returncode != 0 or not os.path.exists(saida_k):
+                    sys.exit(f"ERRO_LEGENDA pycaps falhou na passada {k + 1} (código {r.returncode})")
+                entrada = saida_k
+            print(f"LEGENDA_OK {a.saida}"); return
+        if segs[0].get("pos") is not None:
+            cfg = montar_config(a.estilo, trab, destaques, emojis, segs[0]["pos"], a.som, a.fonte, a.blocos, a.compacta)
+            cmd[cmd.index("--config") + 1] = cfg
         cmd += ["--transcript", palavras, "--transcript-format", "whisper_json"]
         if a.preview:
             cmd += ["--preview-time", a.preview]
