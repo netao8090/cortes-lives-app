@@ -192,6 +192,8 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
             lcmd += ["--prompt", plano["vocabulario"]]
         if plano.get("som_legenda"):
             lcmd += ["--som"]
+        if c.get("fonte_legenda") or plano.get("fonte_legenda"):
+            lcmd += ["--fonte", c.get("fonte_legenda") or plano["fonte_legenda"]]
         r = subprocess.run(lcmd)
         if r.returncode == 0 and os.path.exists(final):
             os.replace(final, out)

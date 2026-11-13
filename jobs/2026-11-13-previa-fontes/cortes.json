@@ -1,0 +1,52 @@
+{
+ "formato": "vertical",
+ "layout": "auto",
+ "legenda": true,
+ "estilo_legenda": "viral",
+ "som_legenda": true,
+ "vocabulario": "yuri22, GTA, recorde",
+ "cortes": [
+  {
+   "inicio": "22:39:10",
+   "fim": "22:39:40",
+   "titulo": "FALTOU 2 SEGUNDOS PRO RECORDE",
+   "destaques": [
+    "recorde",
+    "segundos",
+    "Deus",
+    "cabeça"
+   ],
+   "posicao_legenda": 0.76,
+   "id": "1_montserrat",
+   "fonte_legenda": "montserrat"
+  },
+  {
+   "inicio": "22:39:10",
+   "fim": "22:39:40",
+   "titulo": "FALTOU 2 SEGUNDOS PRO RECORDE",
+   "destaques": [
+    "recorde",
+    "segundos",
+    "Deus",
+    "cabeça"
+   ],
+   "posicao_legenda": 0.76,
+   "id": "2_anton",
+   "fonte_legenda": "anton"
+  },
+  {
+   "inicio": "22:39:10",
+   "fim": "22:39:40",
+   "titulo": "FALTOU 2 SEGUNDOS PRO RECORDE",
+   "destaques": [
+    "recorde",
+    "segundos",
+    "Deus",
+    "cabeça"
+   ],
+   "posicao_legenda": 0.76,
+   "id": "5_bangers",
+   "fonte_legenda": "bangers"
+  }
+ ]
+}

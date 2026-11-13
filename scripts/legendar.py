@@ -93,7 +93,29 @@ def pasta_presets():
     return p
 
 
-def montar_config(estilo, trab, destaques, emojis, posicao, som):
+FONTES_LEGENDA = {  # arquivo em fontes_legenda/, peso, tamanho (mesma altura de letra da prévia)
+    "montserrat": ("montserrat-latin-900-normal.woff2", 900, 26.4),
+    "anton": ("anton-latin-400-normal.woff2", 400, 21.5),
+    "bangers": ("bangers-latin-400-normal.woff2", 400, 25.0),
+}
+
+
+def aplicar_fonte(cfg, css, trab, fonte):
+    arq, peso, tam = FONTES_LEGENDA[fonte]
+    res = os.path.join(trab, "res")
+    if cfg.get("resources") and os.path.isdir(cfg["resources"]):
+        shutil.copytree(cfg["resources"], res)
+    else:
+        os.makedirs(res)
+    shutil.copy(os.path.join(AQUI, "..", "fontes_legenda", arq), res)
+    cfg["resources"] = res
+    return css + f"""
+@font-face {{ font-family: 'Leg'; src: url('{arq}'); font-weight: {peso}; }}
+.word {{ font-family: 'Leg'; font-weight: {peso}; font-size: {tam}px; }}
+"""
+
+
+def montar_config(estilo, trab, destaques, emojis, posicao, som, fonte=None):
     presets = pasta_presets()
     proprio = ESTILOS.get(estilo)
     base = proprio["base"] if proprio else estilo
@@ -121,14 +143,16 @@ def montar_config(estilo, trab, destaques, emojis, posicao, som):
         cfg["layout"]["max_width_ratio"] = 0.78
     else:
         css += "\n.word.destaque { filter: brightness(1.15); }\n"
-    css_path = os.path.join(trab, "styles.css")
-    open(css_path, "w", encoding="utf-8").write(css)
-    cfg["css"] = css_path
     res = os.path.join(pdir, cfg.get("resources", "resources"))
     if os.path.isdir(res):
         cfg["resources"] = res
     else:
         cfg.pop("resources", None)
+    if fonte:
+        css = aplicar_fonte(cfg, css, trab, fonte)
+    css_path = os.path.join(trab, "styles.css")
+    open(css_path, "w", encoding="utf-8").write(css)
+    cfg["css"] = css_path
 
     regras = list(cfg.get("tagger_rules", []))
     if destaques:
@@ -259,6 +283,7 @@ def main():
     ap.add_argument("--emojis", default="")
     ap.add_argument("--posicao", type=float)
     ap.add_argument("--som", action="store_true")
+    ap.add_argument("--fonte", choices=sorted(FONTES_LEGENDA))
     ap.add_argument("--lang", default="pt")
     ap.add_argument("--modelo", default="turbo")
     ap.add_argument("--prompt", default="")
@@ -270,7 +295,7 @@ def main():
     emojis = json.loads(a.emojis) if a.emojis.strip() else {}
     trab = tempfile.mkdtemp(prefix="legenda_")
     try:
-        cfg = montar_config(a.estilo, trab, destaques, emojis, a.posicao, a.som)
+        cfg = montar_config(a.estilo, trab, destaques, emojis, a.posicao, a.som, a.fonte)
         cmd = ["pycaps", "render", "--input", os.path.abspath(a.entrada), "--output", os.path.abspath(a.saida),
                "--config", cfg, "--video-quality", a.qualidade]
         palavras = normalizar_palavras(a.palavras, trab) if a.palavras else \
