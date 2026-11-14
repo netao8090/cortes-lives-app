@@ -8,11 +8,11 @@
     {
      "word": "Rio",
      "start": 0.0,
-     "end": 0.08
+     "end": 0.06
     },
     {
      "word": "de",
-     "start": 0.08,
+     "start": 0.06,
      "end": 0.2
     },
     {
@@ -34,13 +34,13 @@
    "pos": 0.76
   },
   {
-   "start": 2.54,
+   "start": 2.6,
    "end": 3.45,
    "text": "— Sou⁠ mesmo!⁠",
    "words": [
     {
      "word": "— Sou⁠",
-     "start": 2.54,
+     "start": 2.6,
      "end": 2.92
     },
     {
@@ -52,75 +52,98 @@
    "pos": 0.76
   },
   {
-   "start": 7.76,
-   "end": 9.51,
+   "start": 7.78,
+   "end": 9.57,
    "text": "Sou⁠ mesmo!⁠ Sou⁠ mesmo!⁠",
    "words": [
     {
      "word": "Sou⁠",
-     "start": 7.76,
-     "end": 8.16
+     "start": 7.78,
+     "end": 8.26
     },
     {
      "word": "mesmo!⁠",
-     "start": 8.16,
-     "end": 8.46
+     "start": 8.26,
+     "end": 8.74
     },
     {
      "word": "Sou⁠",
      "start": 8.74,
-     "end": 8.8
+     "end": 8.82
     },
     {
      "word": "mesmo!⁠",
-     "start": 8.8,
-     "end": 9.51
+     "start": 8.82,
+     "end": 9.57
     }
    ],
    "pos": 0.76
   },
   {
-   "start": 21.54,
-   "end": 22.87,
+   "start": 22.2,
+   "end": 23.19,
    "text": "Quebra, quebra!",
    "words": [
     {
      "word": "Quebra,",
-     "start": 21.54,
-     "end": 21.98
+     "start": 22.2,
+     "end": 22.64
     },
     {
      "word": "quebra!",
-     "start": 22.2,
-     "end": 22.87
+     "start": 22.64,
+     "end": 23.19
     }
    ],
    "pos": 0.76
   },
   {
-   "start": 43.55,
-   "end": 45.98,
+   "start": 29.7,
+   "end": 30.75,
+   "text": "Fuzil ali, viado!",
+   "words": [
+    {
+     "word": "Fuzil",
+     "start": 29.7,
+     "end": 29.94
+    },
+    {
+     "word": "ali,",
+     "start": 29.94,
+     "end": 30.1
+    },
+    {
+     "word": "viado!",
+     "start": 30.1,
+     "end": 30.75
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 43.33,
+   "end": 45.8,
    "text": "Boa, boa, boa! Obrigado!",
    "words": [
     {
      "word": "Boa,",
-     "start": 43.55,
-     "end": 43.93
+     "start": 43.33,
+     "end": 43.97
     },
     {
      "word": "boa,",
-     "start": 44.01,
-     "end": 44.13
+     "start": 43.97,
+     "end": 44.15
     },
     {
      "word": "boa!",
-     "start": 44.27,
-     "end": 44.45
+     "start": 44.15,
+     "end": 44.47
     },
     {
      "word": "Obrigado!",
-     "start": 45.29,
-     "end": 45.98
+     "start": 44.75,
+     "end": 45.8
     }
    ],
    "pos": 0.76

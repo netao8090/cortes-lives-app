@@ -1,6 +1,34 @@
-{"blocos": [
- {"f":1,"texto":"Rio de Janeiro ou não?","pos":0.76},
- {"f":2,"texto":"Sou mesmo!","pos":0.76},
- {"f":2,"texto":"Sou mesmo! Sou mesmo!","pos":0.76},
- {"f":1,"texto":"Quebra, quebra!","pos":0.76},
- {"f":1,"texto":"Boa, boa, boa! Obrigado!","pos":0.76}]}
+{
+"blocos": [
+{
+"f": 1,
+"texto": "Rio de Janeiro ou não?",
+"pos": 0.76
+},
+{
+"f": 2,
+"texto": "Sou mesmo!",
+"pos": 0.76
+},
+{
+"f": 2,
+"texto": "Sou mesmo! Sou mesmo!",
+"pos": 0.76
+},
+{
+"f": 1,
+"texto": "Quebra, quebra!",
+"pos": 0.76
+},
+{
+"f": 1,
+"texto": "Fuzil ali, viado!",
+"pos": 0.76
+},
+{
+"f": 1,
+"texto": "Boa, boa, boa! Obrigado!",
+"pos": 0.76
+}
+]
+}

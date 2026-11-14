@@ -24,13 +24,13 @@
    "pos": 0.6
   },
   {
-   "start": 2.85,
-   "end": 4.0,
+   "start": 2.87,
+   "end": 4.02,
    "text": "E aí, Coringão, como é",
    "words": [
     {
      "word": "E",
-     "start": 2.85,
+     "start": 2.87,
      "end": 3.13
     },
     {
@@ -40,35 +40,35 @@
     },
     {
      "word": "Coringão,",
-     "start": 3.31,
-     "end": 3.71
+     "start": 3.35,
+     "end": 3.69
     },
     {
      "word": "como",
-     "start": 3.79,
-     "end": 3.95
+     "start": 3.81,
+     "end": 3.97
     },
     {
      "word": "é",
-     "start": 3.95,
-     "end": 4.0
+     "start": 3.97,
+     "end": 4.02
     }
    ],
    "pos": 0.6
   },
   {
    "start": 3.99,
-   "end": 5.47,
+   "end": 5.48,
    "text": "que tá essa despedida aí, pai?",
    "words": [
     {
      "word": "que",
      "start": 3.99,
-     "end": 4.07
+     "end": 4.09
     },
     {
      "word": "tá",
-     "start": 4.07,
+     "start": 4.09,
      "end": 4.15
     },
     {
@@ -84,24 +84,24 @@
     {
      "word": "aí,",
      "start": 4.77,
-     "end": 4.97
+     "end": 4.95
     },
     {
      "word": "pai?",
      "start": 5.07,
-     "end": 5.47
+     "end": 5.48
     }
    ],
    "pos": 0.6
   },
   {
-   "start": 5.51,
-   "end": 6.53,
-   "text": "Vai começar, né, pai",
+   "start": 5.53,
+   "end": 6.55,
+   "text": "Vai começar, né, pai?",
    "words": [
     {
      "word": "Vai",
-     "start": 5.51,
+     "start": 5.53,
      "end": 5.67
     },
     {
@@ -115,21 +115,21 @@
      "end": 6.32
     },
     {
-     "word": "pai",
+     "word": "pai?",
      "start": 6.43,
-     "end": 6.53
+     "end": 6.55
     }
    ],
    "pos": 0.6
   },
   {
-   "start": 6.57,
-   "end": 8.22,
-   "text": "vai começar, estamos prontos",
+   "start": 6.59,
+   "end": 8.01,
+   "text": "Vai começar, estamos prontos",
    "words": [
     {
-     "word": "vai",
-     "start": 6.57,
+     "word": "Vai",
+     "start": 6.59,
      "end": 6.67
     },
     {
@@ -139,26 +139,59 @@
     },
     {
      "word": "estamos",
-     "start": 7.21,
+     "start": 7.23,
      "end": 7.45
     },
     {
      "word": "prontos",
      "start": 7.45,
-     "end": 8.22
+     "end": 8.01
     }
    ],
    "pos": 0.6
   },
   {
-   "start": 8.95,
+   "start": 8.05,
+   "end": 9.17,
+   "text": "Olha ali no espelho, né?",
+   "words": [
+    {
+     "word": "Olha",
+     "start": 8.05,
+     "end": 8.23
+    },
+    {
+     "word": "ali",
+     "start": 8.23,
+     "end": 8.41
+    },
+    {
+     "word": "no",
+     "start": 8.41,
+     "end": 8.53
+    },
+    {
+     "word": "espelho,",
+     "start": 8.53,
+     "end": 8.81
+    },
+    {
+     "word": "né?",
+     "start": 8.91,
+     "end": 9.17
+    }
+   ],
+   "pos": 0.6
+  },
+  {
+   "start": 9.21,
    "end": 10.09,
    "text": "Ô, mano, deixa eu só",
    "words": [
     {
      "word": "Ô,",
-     "start": 8.95,
-     "end": 9.41
+     "start": 9.21,
+     "end": 9.43
     },
     {
      "word": "mano,",
@@ -191,11 +224,11 @@
     {
      "word": "fazer",
      "start": 10.13,
-     "end": 10.35
+     "end": 10.37
     },
     {
      "word": "uma",
-     "start": 10.35,
+     "start": 10.37,
      "end": 10.47
     },
     {
@@ -209,10 +242,10 @@
   {
    "start": 11.01,
    "end": 11.59,
-   "text": "cadê o Bahia?",
+   "text": "Cadê o Bahia?",
    "words": [
     {
-     "word": "cadê",
+     "word": "Cadê",
      "start": 11.01,
      "end": 11.23
     },
@@ -231,40 +264,45 @@
   },
   {
    "start": 11.63,
-   "end": 12.46,
-   "text": "Bahia, tá aí?",
+   "end": 12.44,
+   "text": "O Bahia tá aí?",
    "words": [
     {
-     "word": "Bahia,",
+     "word": "O",
      "start": 11.63,
-     "end": 11.89
+     "end": 11.65
+    },
+    {
+     "word": "Bahia",
+     "start": 11.65,
+     "end": 11.87
     },
     {
      "word": "tá",
-     "start": 11.97,
-     "end": 12.02
+     "start": 11.87,
+     "end": 12.01
     },
     {
      "word": "aí?",
-     "start": 12.02,
-     "end": 12.46
+     "start": 12.01,
+     "end": 12.44
     }
    ],
    "pos": 0.6
   },
   {
-   "start": 15.17,
-   "end": 16.53,
+   "start": 15.19,
+   "end": 16.51,
    "text": "Cara, eu sou muito seu fã",
    "words": [
     {
      "word": "Cara,",
-     "start": 15.17,
-     "end": 15.53
+     "start": 15.19,
+     "end": 15.51
     },
     {
      "word": "eu",
-     "start": 15.63,
+     "start": 15.61,
      "end": 15.69
     },
     {
@@ -280,24 +318,24 @@
     {
      "word": "seu",
      "start": 16.03,
-     "end": 16.25
+     "end": 16.23
     },
     {
      "word": "fã",
-     "start": 16.25,
-     "end": 16.53
+     "start": 16.23,
+     "end": 16.51
     }
    ],
    "pos": 0.6
   },
   {
-   "start": 16.57,
-   "end": 17.79,
-   "text": "mas me explica uma coisa",
+   "start": 16.55,
+   "end": 17.81,
+   "text": "mas me explica uma coisa aqui",
    "words": [
     {
      "word": "mas",
-     "start": 16.57,
+     "start": 16.55,
      "end": 16.73
     },
     {
@@ -313,24 +351,29 @@
     {
      "word": "uma",
      "start": 17.19,
-     "end": 17.33
+     "end": 17.31
     },
     {
      "word": "coisa",
-     "start": 17.33,
-     "end": 17.79
+     "start": 17.31,
+     "end": 17.57
+    },
+    {
+     "word": "aqui",
+     "start": 17.57,
+     "end": 17.81
     }
    ],
    "pos": 0.6
   },
   {
-   "start": 17.83,
+   "start": 17.85,
    "end": 18.69,
-   "text": "como é que tu consegue",
+   "text": "Como é que tu consegue",
    "words": [
     {
-     "word": "como",
-     "start": 17.83,
+     "word": "Como",
+     "start": 17.85,
      "end": 18.05
     },
     {
@@ -392,21 +435,21 @@
   {
    "start": 19.87,
    "end": 21.3,
-   "text": "pra trinta mil cabeças?",
+   "text": "pra 30 mil cabeças?",
    "words": [
     {
      "word": "pra",
      "start": 19.87,
-     "end": 20.13
+     "end": 20.09
     },
     {
-     "word": "trinta",
-     "start": 20.13,
-     "end": 20.39
+     "word": "30",
+     "start": 20.09,
+     "end": 20.37
     },
     {
      "word": "mil",
-     "start": 20.39,
+     "start": 20.37,
      "end": 20.57
     },
     {
@@ -418,84 +461,132 @@
    "pos": 0.6
   },
   {
-   "start": 27.08,
-   "end": 28.39,
-   "text": "Sou muito teu fã, mano",
+   "start": 26.98,
+   "end": 28.22,
+   "text": "Eu sou muito teu fã, mano",
    "words": [
     {
-     "word": "Sou",
-     "start": 27.08,
+     "word": "Eu",
+     "start": 26.98,
+     "end": 27.06
+    },
+    {
+     "word": "sou",
+     "start": 27.06,
      "end": 27.2
     },
     {
      "word": "muito",
      "start": 27.2,
-     "end": 27.44
+     "end": 27.42
     },
     {
      "word": "teu",
-     "start": 27.44,
+     "start": 27.42,
      "end": 27.64
     },
     {
      "word": "fã,",
      "start": 27.64,
-     "end": 27.94
+     "end": 27.92
     },
     {
      "word": "mano",
-     "start": 28.0,
-     "end": 28.39
+     "start": 28.02,
+     "end": 28.22
     }
    ],
    "pos": 0.6
   },
   {
-   "start": 29.72,
-   "end": 33.28,
+   "start": 28.26,
+   "end": 29.66,
+   "text": "Papo reto, eu sou muito teu fã",
+   "words": [
+    {
+     "word": "Papo",
+     "start": 28.26,
+     "end": 28.487
+    },
+    {
+     "word": "reto,",
+     "start": 28.487,
+     "end": 28.76
+    },
+    {
+     "word": "eu",
+     "start": 28.82,
+     "end": 28.88
+    },
+    {
+     "word": "sou",
+     "start": 28.88,
+     "end": 28.96
+    },
+    {
+     "word": "muito",
+     "start": 28.96,
+     "end": 29.16
+    },
+    {
+     "word": "teu",
+     "start": 29.16,
+     "end": 29.36
+    },
+    {
+     "word": "fã",
+     "start": 29.36,
+     "end": 29.66
+    }
+   ],
+   "pos": 0.6
+  },
+  {
+   "start": 29.7,
+   "end": 33.22,
    "text": "Eu não irei te xingar",
    "words": [
     {
      "word": "Eu",
-     "start": 29.72,
-     "end": 29.9
+     "start": 29.7,
+     "end": 29.86
     },
     {
      "word": "não",
-     "start": 29.9,
-     "end": 30.56
+     "start": 29.86,
+     "end": 30.34
     },
     {
      "word": "irei",
-     "start": 30.56,
-     "end": 32.66
+     "start": 30.34,
+     "end": 32.64
     },
     {
      "word": "te",
-     "start": 32.66,
+     "start": 32.64,
      "end": 32.74
     },
     {
      "word": "xingar",
      "start": 32.74,
-     "end": 33.28
+     "end": 33.22
     }
    ],
    "pos": 0.6
   },
   {
-   "start": 33.32,
-   "end": 34.57,
+   "start": 33.26,
+   "end": 34.59,
    "text": "por conta disso, tá?",
    "words": [
     {
      "word": "por",
-     "start": 33.32,
-     "end": 33.52
+     "start": 33.26,
+     "end": 33.54
     },
     {
      "word": "conta",
-     "start": 33.52,
+     "start": 33.54,
      "end": 33.8
     },
     {
@@ -506,14 +597,14 @@
     {
      "word": "tá?",
      "start": 34.24,
-     "end": 34.57
+     "end": 34.59
     }
    ],
    "pos": 0.6
   },
   {
    "start": 36.1,
-   "end": 37.04,
+   "end": 37.0,
    "text": "— Tamo⁠ junto,⁠ irmão⁠",
    "words": [
     {
@@ -524,126 +615,65 @@
     {
      "word": "junto,⁠",
      "start": 36.38,
-     "end": 36.58
+     "end": 36.62
     },
     {
      "word": "irmão⁠",
-     "start": 36.78,
-     "end": 37.04
+     "start": 36.8,
+     "end": 37.0
     }
    ],
    "pos": 0.6
   },
   {
-   "start": 37.08,
-   "end": 37.72,
+   "start": 37.04,
+   "end": 37.92,
    "text": "tamo⁠ junto,⁠ tá?⁠",
    "words": [
     {
      "word": "tamo⁠",
-     "start": 37.08,
-     "end": 37.32
+     "start": 37.04,
+     "end": 37.3
     },
     {
      "word": "junto,⁠",
-     "start": 37.32,
-     "end": 37.46
+     "start": 37.3,
+     "end": 37.48
     },
     {
      "word": "tá?⁠",
      "start": 37.62,
-     "end": 37.72
+     "end": 37.92
     }
    ],
    "pos": 0.6
   },
   {
-   "start": 37.76,
-   "end": 38.54,
-   "text": "Eu tô acompanhando",
-   "words": [
-    {
-     "word": "Eu",
-     "start": 37.76,
-     "end": 37.94
-    },
-    {
-     "word": "tô",
-     "start": 37.94,
-     "end": 38.06
-    },
-    {
-     "word": "acompanhando",
-     "start": 38.06,
-     "end": 38.54
-    }
-   ],
-   "pos": 0.6
-  },
-  {
-   "start": 38.58,
-   "end": 39.82,
-   "text": "a cara do Cunhinho aí, cara",
-   "words": [
-    {
-     "word": "a",
-     "start": 38.58,
-     "end": 38.72
-    },
-    {
-     "word": "cara",
-     "start": 38.72,
-     "end": 38.86
-    },
-    {
-     "word": "do",
-     "start": 38.86,
-     "end": 39.08
-    },
-    {
-     "word": "Cunhinho",
-     "start": 39.08,
-     "end": 39.38
-    },
-    {
-     "word": "aí,",
-     "start": 39.38,
-     "end": 39.54
-    },
-    {
-     "word": "cara",
-     "start": 39.68,
-     "end": 39.82
-    }
-   ],
-   "pos": 0.6
-  },
-  {
-   "start": 39.86,
-   "end": 41.07,
+   "start": 39.82,
+   "end": 41.05,
    "text": "Que despedida boa",
    "words": [
     {
      "word": "Que",
-     "start": 39.86,
+     "start": 39.82,
      "end": 39.98
     },
     {
      "word": "despedida",
      "start": 39.98,
-     "end": 40.52
+     "end": 40.54
     },
     {
      "word": "boa",
-     "start": 40.52,
-     "end": 41.07
+     "start": 40.54,
+     "end": 41.05
     }
    ],
    "pos": 0.6
   },
   {
    "start": 42.42,
-   "end": 43.04,
+   "end": 43.06,
    "text": "— Tamo⁠ junto,⁠ irmão⁠",
    "words": [
     {
@@ -659,19 +689,19 @@
     {
      "word": "irmão⁠",
      "start": 42.98,
-     "end": 43.04
+     "end": 43.06
     }
    ],
    "pos": 0.6
   },
   {
-   "start": 43.08,
-   "end": 44.41,
-   "text": "vai⁠ acontecer⁠ daqui⁠ a⁠ pouco⁠",
+   "start": 43.1,
+   "end": 44.54,
+   "text": "Vai⁠ acontecer⁠ daqui⁠ a⁠ pouco,⁠ filho⁠",
    "words": [
     {
-     "word": "vai⁠",
-     "start": 43.08,
+     "word": "Vai⁠",
+     "start": 43.1,
      "end": 43.16
     },
     {
@@ -682,49 +712,54 @@
     {
      "word": "daqui⁠",
      "start": 43.52,
-     "end": 43.78
+     "end": 43.76
     },
     {
      "word": "a⁠",
-     "start": 43.78,
-     "end": 43.9
+     "start": 43.76,
+     "end": 43.88
     },
     {
-     "word": "pouco⁠",
-     "start": 43.9,
-     "end": 44.41
+     "word": "pouco,⁠",
+     "start": 43.88,
+     "end": 44.16
+    },
+    {
+     "word": "filho⁠",
+     "start": 44.28,
+     "end": 44.54
     }
    ],
    "pos": 0.6
   },
   {
-   "start": 44.62,
+   "start": 44.58,
    "end": 45.3,
    "text": "Hoje⁠ é⁠ fim⁠ do⁠ mundo⁠",
    "words": [
     {
      "word": "Hoje⁠",
-     "start": 44.62,
-     "end": 44.68
+     "start": 44.58,
+     "end": 44.72
     },
     {
      "word": "é⁠",
-     "start": 44.68,
-     "end": 44.8
+     "start": 44.72,
+     "end": 44.82
     },
     {
      "word": "fim⁠",
-     "start": 44.8,
+     "start": 44.82,
      "end": 44.9
     },
     {
      "word": "do⁠",
      "start": 44.9,
-     "end": 45.04
+     "end": 45.02
     },
     {
      "word": "mundo⁠",
-     "start": 45.04,
+     "start": 45.02,
      "end": 45.3
     }
    ],
@@ -733,10 +768,10 @@
   {
    "start": 45.34,
    "end": 46.39,
-   "text": "hoje⁠ é⁠ fim⁠ do⁠ mundo⁠",
+   "text": "Hoje⁠ é⁠ fim⁠ do⁠ mundo⁠",
    "words": [
     {
-     "word": "hoje⁠",
+     "word": "Hoje⁠",
      "start": 45.34,
      "end": 45.52
     },
@@ -748,11 +783,11 @@
     {
      "word": "fim⁠",
      "start": 45.62,
-     "end": 45.76
+     "end": 45.74
     },
     {
      "word": "do⁠",
-     "start": 45.76,
+     "start": 45.74,
      "end": 45.86
     },
     {
