@@ -1,0 +1,16 @@
+{
+ "formato": "vertical",
+ "layout": "auto",
+ "legenda": false,
+ "titulo_no_video": false,
+ "vocabulario": "gabepeixe, Gabe, Coringa, despedida de solteiro, à la caralho, short, chat",
+ "cortes": [
+  {
+   "id": "01",
+   "inicio": "6:51:06",
+   "fim": "6:51:58",
+   "titulo": "O LOOK À LA CARALHO",
+   "layout": "retrato"
+  }
+ ]
+}
