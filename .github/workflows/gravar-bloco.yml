@@ -11,9 +11,9 @@ on:
         description: "Nome curto do canal (ex.: yuri22)"
         required: true
       bloco:
-        description: "Minutos por bloco"
+        description: "Minutos por bloco (padrão 1 hora)"
         required: false
-        default: "120"
+        default: "60"
       espera:
         description: "Minutos esperando o Claude escolher os cortes"
         required: false

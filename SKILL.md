@@ -67,7 +67,7 @@ A Kick não deixa baixar o passado de uma live em andamento; o VOD completo só 
 ## 2b. Vigia automático + cortes em blocos (live ao vivo, sem ninguém mandar link)
 
 Para quem quer cortes **durante** a live, de bloco em bloco, sem precisar avisar:
-- `canais.txt` na raiz do repositório: uma linha por canal, `link minutos_por_bloco` (ex.: `https://kick.com/yuri22 120`). Para ligar/desligar um canal, edite esse arquivo (commit + push).
+- `canais.txt` na raiz do repositório: uma linha por canal, `link minutos_por_bloco` (ex.: `https://kick.com/yuri22 60`). **Padrão: blocos de 1 hora (60)**; sem o número também fica 60. Para ligar/desligar um canal, edite esse arquivo (commit + push).
 - `vigia.yml` roda sozinho a cada ~10 min: se um canal está ao vivo e não há gravação, dispara `gravar-bloco.yml`.
 - `gravar-bloco.yml` (run-name `gravar <canal>`): grava UM bloco (vídeo + chat), já transcrevendo em pedaços de 10 min durante a gravação; 3 min antes do fim dispara o próximo bloco (sem buraco); ao fechar, salva `jobs/<AAAA-MM-DD-HHMM>-<canal>/` com `transcricao.txt`, `picos.txt`, `chat_picos.txt`, `meta.json` e `status.json` = `{"etapa": "aguardando_cortes"}`. Depois espera até `espera` min (padrão 150) por `cortes.json`; renderiza do próprio arquivo gravado, publica a Release `<job>` e marca `"etapa": "renderizado"`. `cortes.json` com `"cortes": []` = bloco sem nada bom (marca `sem_cortes`).
 - Parar tudo de um canal: tire-o do `canais.txt` e cancele os runs `gravar <canal>` em andamento (`gh api -X POST $R/actions/runs/<id>/cancel`).
@@ -91,7 +91,8 @@ Transcrições longas: ranqueie janelas de ~40 s por energia (`transcricao.json`
 Critérios de um corte viral:
 - Reação forte do streamer (susto, grito, gargalhada, raiva) **coincidindo** com explosão do chat, quando houver chat.
 - Fail, jogada absurda, plot twist, resenha engraçada, interação com chat/convidado.
-- Entende-se sozinho: começa 1-3 s antes do gancho (com o mínimo de contexto) e termina logo após o clímax. Shorts de 20-60 s (máx. ~65 s). Nunca cortar no meio da frase.
+- Entende-se sozinho: começa 1-3 s antes do gancho (com o mínimo de contexto) e termina logo após o clímax. Nunca cortar no meio da frase.
+- **Duração: pode passar de 1 minuto.** Normal de 40 s a 2 min, do tamanho que a história pede (resenha, conversa ou chamada inteira com começo, meio e fim costuma dar 1-2 min); até 3 min no máximo, que é o limite do YouTube Shorts e do Reels. Não estique com enrolação: se o melhor momento cabe em 30 s, fica com 30 s.
 - Evite: loading/espera, publi, música tocando ao fundo (direitos autorais), trechos de conteúdo sexual explícito ou ofensas pesadas.
 - Se o chat for constante sem picos (live muito movimentada), pese mais a voz e a história do momento.
 - Quantidade: o que o usuário pedir (padrão 5; se pedir "os mais virais", 3).

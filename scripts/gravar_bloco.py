@@ -2,7 +2,7 @@
 """
 Grava UM bloco de uma live ao vivo (Kick ou Twitch) e prepara tudo para o Claude escolher os cortes.
 
-  gravar_bloco.py <url_do_canal> --canal <slug> --bloco 120 [--sobreposicao 3] [--espera 150]
+  gravar_bloco.py <url_do_canal> --canal <slug> --bloco 60 [--sobreposicao 3] [--espera 150]
 
 O que faz, na ordem:
   1. grava o vídeo (qualidade original, sem recompressão) em pedaços de 10 min + o chat;
@@ -155,7 +155,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("url")
     ap.add_argument("--canal", required=True)
-    ap.add_argument("--bloco", type=float, default=120, help="minutos por bloco")
+    ap.add_argument("--bloco", type=float, default=60, help="minutos por bloco (padrão 1 hora)")
     ap.add_argument("--sobreposicao", type=float, default=3, help="minutos de sobra entre blocos")
     ap.add_argument("--espera", type=float, default=150, help="minutos esperando o Claude escolher os cortes")
     ap.add_argument("--pasta", default="/mnt/rec")

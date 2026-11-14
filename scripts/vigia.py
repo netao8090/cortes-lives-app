@@ -4,9 +4,9 @@ Vigia: confere os canais de canais.txt e, se algum está AO VIVO sem gravação 
 dispara o gravador de blocos (gravar-bloco.yml).
 
 canais.txt (uma linha por canal; # comenta):
-  https://kick.com/yuri22            120
+  https://kick.com/yuri22            60
   https://www.twitch.tv/gaules       90
-  (o número é o tamanho do bloco em minutos; padrão 120)
+  (o número é o tamanho do bloco em minutos; padrão 60 = 1 hora)
 """
 import datetime, json, os, re, subprocess, sys
 
@@ -52,7 +52,7 @@ def main():
         if not ln:
             continue
         partes = ln.split()
-        url, bloco = partes[0], int(partes[1]) if len(partes) > 1 else 120
+        url, bloco = partes[0], int(partes[1]) if len(partes) > 1 else 60
         if not url.startswith("http"):
             url = "https://" + url
         canal = slug(url)
