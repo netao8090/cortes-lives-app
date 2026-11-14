@@ -47,6 +47,12 @@ jobs:
         run: |
           cp jobs/"$JOB"/publicacao.md saida/"$JOB"/ 2>/dev/null || true
           if gh release view "$JOB" > /dev/null 2>&1; then
+            # corte refeito: a cópia limpa antiga (guardada pela legenda) ficou velha, então sai da Release
+            for v in saida/"$JOB"/corte_*_vertical.mp4; do
+              [ -e "$v" ] || continue
+              n=$(basename "$v" _vertical.mp4)
+              gh release delete-asset "$JOB" "${n}_limpo.mp4" -y 2>/dev/null && echo "limpo antigo apagado: ${n}_limpo.mp4" || true
+            done
             gh release upload "$JOB" saida/"$JOB"/* --clobber
           else
             gh release create "$JOB" saida/"$JOB"/* --title "Cortes: $JOB" --notes-file jobs/"$JOB"/publicacao.md \

@@ -131,7 +131,7 @@ Critérios de um corte viral:
    - A caixa pegou só a webcam? Não ficou nenhuma frase por cima do vídeo (a menos que o usuário tenha pedido)?
    - Se errou a webcam: refaça só aquele corte com `facecam` manual (copie a caixa de outro corte da mesma live, que costuma ser igual) usando `inputs[so]=<id>`.
    - Cena de chamada: os dois rostos aparecem (o de quem está na chamada em cima)? Se o streamer saiu da câmera, o trecho vazio sumiu?
-   - **Re-renderizou um corte que já tinha legenda?** Apague antes o `corte_<id>_limpo.mp4` antigo da Release (`gh api $R/releases/tags/<job> --jq '.assets[]|"\(.id) \(.name)"'` → `gh api -X DELETE $R/releases/assets/<id>`), senão o `legendar.yml` legenda o vídeo velho. E refaça a revisão da legenda: se a câmera vazia tirou um trecho, os tempos mudaram.
+   - **Re-renderizou um corte que já tinha legenda?** O `renderizar.yml` apaga sozinho o `corte_<id>_limpo.mp4` antigo da Release (log `limpo antigo apagado`), então o `legendar.yml` pega o vídeo novo. Refaça a revisão da legenda: se a câmera vazia tirou um trecho, os tempos mudaram.
 4. Faça o passo 4b (legenda inteligente) antes de entregar — é o padrão; pule só se o usuário pedir corte sem legenda. Entregue com `SendUserFile` (os .mp4 + `publicacao.md`) e uma tabela curta: corte, tempo na live, por que é viral — e siga direto para o passo 5, sem perguntar.
 
 ## 4b. Legenda inteligente (padrão em todo corte)

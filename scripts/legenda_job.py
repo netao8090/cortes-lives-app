@@ -3,7 +3,8 @@
 Legenda inteligente de um job inteiro (cortes de uma live ou um vídeo avulso), com a revisão do Claude no meio.
 
   rascunho --job J [--so 01,03] [--video LINK|release:tag/arquivo]
-      Pega os cortes da Release J (corte_<id>_vertical.mp4; se já existir corte_<id>_limpo.mp4, usa esse),
+      Pega os cortes da Release J (corte_<id>_vertical.mp4; se já existir corte_<id>_limpo.mp4, usa esse;
+      o renderizar.yml apaga o limpo quando refaz o corte),
       transcreve palavra por palavra, separa as vozes e escolhe a posição de cada bloco (sem cobrir personagem).
       Salva jobs/J/legendas/<id>.bruto.json e <id>.posicoes.jpg (o workflow faz o commit).
       Com --video: antes, coloca esse vídeo na Release J como corte_01_vertical.mp4 (vídeo avulso).
