@@ -1,0 +1,129 @@
+{
+ "segments": [
+  {
+   "start": 0.0,
+   "end": 1.05,
+   "text": "Rio de Janeiro ou não?",
+   "words": [
+    {
+     "word": "Rio",
+     "start": 0.0,
+     "end": 0.08
+    },
+    {
+     "word": "de",
+     "start": 0.08,
+     "end": 0.2
+    },
+    {
+     "word": "Janeiro",
+     "start": 0.2,
+     "end": 0.44
+    },
+    {
+     "word": "ou",
+     "start": 0.44,
+     "end": 0.66
+    },
+    {
+     "word": "não?",
+     "start": 0.66,
+     "end": 1.05
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 2.54,
+   "end": 3.45,
+   "text": "— Sou⁠ mesmo!⁠",
+   "words": [
+    {
+     "word": "— Sou⁠",
+     "start": 2.54,
+     "end": 2.92
+    },
+    {
+     "word": "mesmo!⁠",
+     "start": 2.92,
+     "end": 3.45
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 7.76,
+   "end": 9.51,
+   "text": "Sou⁠ mesmo!⁠ Sou⁠ mesmo!⁠",
+   "words": [
+    {
+     "word": "Sou⁠",
+     "start": 7.76,
+     "end": 8.16
+    },
+    {
+     "word": "mesmo!⁠",
+     "start": 8.16,
+     "end": 8.46
+    },
+    {
+     "word": "Sou⁠",
+     "start": 8.74,
+     "end": 8.8
+    },
+    {
+     "word": "mesmo!⁠",
+     "start": 8.8,
+     "end": 9.51
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 21.54,
+   "end": 22.87,
+   "text": "Quebra, quebra!",
+   "words": [
+    {
+     "word": "Quebra,",
+     "start": 21.54,
+     "end": 21.98
+    },
+    {
+     "word": "quebra!",
+     "start": 22.2,
+     "end": 22.87
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 43.55,
+   "end": 45.98,
+   "text": "Boa, boa, boa! Obrigado!",
+   "words": [
+    {
+     "word": "Boa,",
+     "start": 43.55,
+     "end": 43.93
+    },
+    {
+     "word": "boa,",
+     "start": 44.01,
+     "end": 44.13
+    },
+    {
+     "word": "boa!",
+     "start": 44.27,
+     "end": 44.45
+    },
+    {
+     "word": "Obrigado!",
+     "start": 45.29,
+     "end": 45.98
+    }
+   ],
+   "pos": 0.76
+  }
+ ]
+}
