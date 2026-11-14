@@ -1,0 +1,666 @@
+{
+ "segments": [
+  {
+   "start": 2.31,
+   "end": 3.57,
+   "text": "Rapaziada, é o seguinte",
+   "words": [
+    {
+     "word": "Rapaziada,",
+     "start": 2.31,
+     "end": 2.89
+    },
+    {
+     "word": "é",
+     "start": 2.93,
+     "end": 3.03
+    },
+    {
+     "word": "o",
+     "start": 3.03,
+     "end": 3.08
+    },
+    {
+     "word": "seguinte",
+     "start": 3.08,
+     "end": 3.57
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 3.61,
+   "end": 4.33,
+   "text": "vou ficando por aqui",
+   "words": [
+    {
+     "word": "vou",
+     "start": 3.61,
+     "end": 3.77
+    },
+    {
+     "word": "ficando",
+     "start": 3.77,
+     "end": 4.05
+    },
+    {
+     "word": "por",
+     "start": 4.05,
+     "end": 4.23
+    },
+    {
+     "word": "aqui",
+     "start": 4.23,
+     "end": 4.33
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 4.37,
+   "end": 5.21,
+   "text": "que eu tenho que me ajeitar",
+   "words": [
+    {
+     "word": "que",
+     "start": 4.37,
+     "end": 4.47
+    },
+    {
+     "word": "eu",
+     "start": 4.47,
+     "end": 4.53
+    },
+    {
+     "word": "tenho",
+     "start": 4.53,
+     "end": 4.63
+    },
+    {
+     "word": "que",
+     "start": 4.63,
+     "end": 4.71
+    },
+    {
+     "word": "me",
+     "start": 4.71,
+     "end": 4.83
+    },
+    {
+     "word": "ajeitar",
+     "start": 4.83,
+     "end": 5.21
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 5.25,
+   "end": 6.01,
+   "text": "tenho 15 minutinhos",
+   "words": [
+    {
+     "word": "tenho",
+     "start": 5.25,
+     "end": 5.37
+    },
+    {
+     "word": "15",
+     "start": 5.37,
+     "end": 5.67
+    },
+    {
+     "word": "minutinhos",
+     "start": 5.67,
+     "end": 6.01
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 6.05,
+   "end": 7.1,
+   "text": "pra me ajeitar, beleza?",
+   "words": [
+    {
+     "word": "pra",
+     "start": 6.05,
+     "end": 6.17
+    },
+    {
+     "word": "me",
+     "start": 6.17,
+     "end": 6.27
+    },
+    {
+     "word": "ajeitar,",
+     "start": 6.27,
+     "end": 6.55
+    },
+    {
+     "word": "beleza?",
+     "start": 6.65,
+     "end": 7.1
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 7.49,
+   "end": 8.07,
+   "text": "Muito obrigado",
+   "words": [
+    {
+     "word": "Muito",
+     "start": 7.49,
+     "end": 7.77
+    },
+    {
+     "word": "obrigado",
+     "start": 7.77,
+     "end": 8.07
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 8.11,
+   "end": 8.97,
+   "text": "pela live de hoje",
+   "words": [
+    {
+     "word": "pela",
+     "start": 8.11,
+     "end": 8.35
+    },
+    {
+     "word": "live",
+     "start": 8.35,
+     "end": 8.53
+    },
+    {
+     "word": "de",
+     "start": 8.53,
+     "end": 8.67
+    },
+    {
+     "word": "hoje",
+     "start": 8.67,
+     "end": 8.97
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 9.01,
+   "end": 10.1,
+   "text": "Não vai ter, né?",
+   "words": [
+    {
+     "word": "Não",
+     "start": 9.01,
+     "end": 9.11
+    },
+    {
+     "word": "vai",
+     "start": 9.11,
+     "end": 9.27
+    },
+    {
+     "word": "ter,",
+     "start": 9.27,
+     "end": 9.55
+    },
+    {
+     "word": "né?",
+     "start": 9.71,
+     "end": 10.1
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 10.29,
+   "end": 10.75,
+   "text": "O Coringa falou",
+   "words": [
+    {
+     "word": "O",
+     "start": 10.29,
+     "end": 10.41
+    },
+    {
+     "word": "Coringa",
+     "start": 10.41,
+     "end": 10.59
+    },
+    {
+     "word": "falou",
+     "start": 10.59,
+     "end": 10.75
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 10.79,
+   "end": 11.65,
+   "text": "que não vai ter nada",
+   "words": [
+    {
+     "word": "que",
+     "start": 10.79,
+     "end": 10.93
+    },
+    {
+     "word": "não",
+     "start": 10.93,
+     "end": 11.07
+    },
+    {
+     "word": "vai",
+     "start": 11.07,
+     "end": 11.23
+    },
+    {
+     "word": "ter",
+     "start": 11.23,
+     "end": 11.37
+    },
+    {
+     "word": "nada",
+     "start": 11.37,
+     "end": 11.65
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 11.69,
+   "end": 12.84,
+   "text": "por enquanto, tá ligado?",
+   "words": [
+    {
+     "word": "por",
+     "start": 11.69,
+     "end": 11.89
+    },
+    {
+     "word": "enquanto,",
+     "start": 11.89,
+     "end": 12.19
+    },
+    {
+     "word": "tá",
+     "start": 12.33,
+     "end": 12.38
+    },
+    {
+     "word": "ligado?",
+     "start": 12.38,
+     "end": 12.84
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 15.03,
+   "end": 17.25,
+   "text": "Vou me ajeitar pra partir, tá?",
+   "words": [
+    {
+     "word": "Vou",
+     "start": 15.03,
+     "end": 15.35
+    },
+    {
+     "word": "me",
+     "start": 15.35,
+     "end": 15.45
+    },
+    {
+     "word": "ajeitar",
+     "start": 15.45,
+     "end": 15.79
+    },
+    {
+     "word": "pra",
+     "start": 15.79,
+     "end": 15.97
+    },
+    {
+     "word": "partir,",
+     "start": 15.97,
+     "end": 16.41
+    },
+    {
+     "word": "tá?",
+     "start": 16.92,
+     "end": 17.25
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 17.66,
+   "end": 19.14,
+   "text": "Mais um beijo pra vocês",
+   "words": [
+    {
+     "word": "Mais",
+     "start": 17.66,
+     "end": 17.96
+    },
+    {
+     "word": "um",
+     "start": 17.96,
+     "end": 18.16
+    },
+    {
+     "word": "beijo",
+     "start": 18.16,
+     "end": 18.48
+    },
+    {
+     "word": "pra",
+     "start": 18.48,
+     "end": 18.64
+    },
+    {
+     "word": "vocês",
+     "start": 18.64,
+     "end": 19.14
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 19.18,
+   "end": 20.98,
+   "text": "obrigado por essas 7 horas",
+   "words": [
+    {
+     "word": "obrigado",
+     "start": 19.18,
+     "end": 19.4
+    },
+    {
+     "word": "por",
+     "start": 19.4,
+     "end": 19.62
+    },
+    {
+     "word": "essas",
+     "start": 19.62,
+     "end": 20.36
+    },
+    {
+     "word": "7",
+     "start": 20.36,
+     "end": 20.7
+    },
+    {
+     "word": "horas",
+     "start": 20.7,
+     "end": 20.98
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 21.02,
+   "end": 22.45,
+   "text": "aí com o gamezinho",
+   "words": [
+    {
+     "word": "aí",
+     "start": 21.02,
+     "end": 21.24
+    },
+    {
+     "word": "com",
+     "start": 21.24,
+     "end": 21.46
+    },
+    {
+     "word": "o",
+     "start": 21.46,
+     "end": 21.7
+    },
+    {
+     "word": "gamezinho",
+     "start": 21.7,
+     "end": 22.45
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 22.75,
+   "end": 23.83,
+   "text": "E amanhã tamo aí, né?",
+   "words": [
+    {
+     "word": "E",
+     "start": 22.75,
+     "end": 22.89
+    },
+    {
+     "word": "amanhã",
+     "start": 22.89,
+     "end": 23.19
+    },
+    {
+     "word": "tamo",
+     "start": 23.19,
+     "end": 23.47
+    },
+    {
+     "word": "aí,",
+     "start": 23.47,
+     "end": 23.57
+    },
+    {
+     "word": "né?",
+     "start": 23.67,
+     "end": 23.83
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 23.87,
+   "end": 24.68,
+   "text": "Deus quiser",
+   "words": [
+    {
+     "word": "Deus",
+     "start": 23.87,
+     "end": 24.07
+    },
+    {
+     "word": "quiser",
+     "start": 24.07,
+     "end": 24.68
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 24.75,
+   "end": 25.95,
+   "text": "vamos ver se eu vou",
+   "words": [
+    {
+     "word": "vamos",
+     "start": 24.75,
+     "end": 24.93
+    },
+    {
+     "word": "ver",
+     "start": 24.93,
+     "end": 25.11
+    },
+    {
+     "word": "se",
+     "start": 25.11,
+     "end": 25.23
+    },
+    {
+     "word": "eu",
+     "start": 25.23,
+     "end": 25.89
+    },
+    {
+     "word": "vou",
+     "start": 25.89,
+     "end": 25.95
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 25.99,
+   "end": 26.94,
+   "text": "tá vivo amanhã",
+   "words": [
+    {
+     "word": "tá",
+     "start": 25.99,
+     "end": 26.11
+    },
+    {
+     "word": "vivo",
+     "start": 26.11,
+     "end": 26.35
+    },
+    {
+     "word": "amanhã",
+     "start": 26.35,
+     "end": 26.94
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 27.5,
+   "end": 28.68,
+   "text": "É nóis, obrigado",
+   "words": [
+    {
+     "word": "É",
+     "start": 27.5,
+     "end": 27.66
+    },
+    {
+     "word": "nóis,",
+     "start": 27.66,
+     "end": 27.98
+    },
+    {
+     "word": "obrigado",
+     "start": 28.08,
+     "end": 28.68
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 28.72,
+   "end": 29.32,
+   "text": "amo vocês",
+   "words": [
+    {
+     "word": "amo",
+     "start": 28.72,
+     "end": 28.9
+    },
+    {
+     "word": "vocês",
+     "start": 28.9,
+     "end": 29.32
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 29.36,
+   "end": 30.33,
+   "text": "obrigado pelo carinho",
+   "words": [
+    {
+     "word": "obrigado",
+     "start": 29.36,
+     "end": 29.54
+    },
+    {
+     "word": "pelo",
+     "start": 29.54,
+     "end": 29.74
+    },
+    {
+     "word": "carinho",
+     "start": 29.74,
+     "end": 30.33
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 30.48,
+   "end": 31.4,
+   "text": "beijo, tchau, tchau, chat",
+   "words": [
+    {
+     "word": "beijo,",
+     "start": 30.48,
+     "end": 30.72
+    },
+    {
+     "word": "tchau,",
+     "start": 30.86,
+     "end": 30.94
+    },
+    {
+     "word": "tchau,",
+     "start": 31.04,
+     "end": 31.14
+    },
+    {
+     "word": "chat",
+     "start": 31.26,
+     "end": 31.4
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 31.44,
+   "end": 33.17,
+   "text": "até amanhã, é nóis!",
+   "words": [
+    {
+     "word": "até",
+     "start": 31.44,
+     "end": 31.56
+    },
+    {
+     "word": "amanhã,",
+     "start": 31.56,
+     "end": 31.94
+    },
+    {
+     "word": "é",
+     "start": 32.26,
+     "end": 32.42
+    },
+    {
+     "word": "nóis!",
+     "start": 32.42,
+     "end": 33.17
+    }
+   ],
+   "pos": 0.76
+  }
+ ]
+}

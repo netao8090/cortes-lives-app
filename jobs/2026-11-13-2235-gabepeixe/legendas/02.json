@@ -1,0 +1,452 @@
+{
+ "segments": [
+  {
+   "start": 2.06,
+   "end": 5.72,
+   "text": "Diga aí, 25 vivos, hein?",
+   "words": [
+    {
+     "word": "Diga",
+     "start": 2.06,
+     "end": 2.36
+    },
+    {
+     "word": "aí,",
+     "start": 2.36,
+     "end": 2.5
+    },
+    {
+     "word": "25",
+     "start": 4.37,
+     "end": 4.73
+    },
+    {
+     "word": "vivos,",
+     "start": 4.73,
+     "end": 5.35
+    },
+    {
+     "word": "hein?",
+     "start": 5.35,
+     "end": 5.72
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 7.12,
+   "end": 8.96,
+   "text": "Olha aí, a galera já caiu",
+   "words": [
+    {
+     "word": "Olha",
+     "start": 7.12,
+     "end": 7.24
+    },
+    {
+     "word": "aí,",
+     "start": 7.24,
+     "end": 7.36
+    },
+    {
+     "word": "a",
+     "start": 8.32,
+     "end": 8.44
+    },
+    {
+     "word": "galera",
+     "start": 8.44,
+     "end": 8.62
+    },
+    {
+     "word": "já",
+     "start": 8.62,
+     "end": 8.78
+    },
+    {
+     "word": "caiu",
+     "start": 8.78,
+     "end": 8.96
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 9.0,
+   "end": 10.15,
+   "text": "na região nova",
+   "words": [
+    {
+     "word": "na",
+     "start": 9.0,
+     "end": 9.08
+    },
+    {
+     "word": "região",
+     "start": 9.08,
+     "end": 9.34
+    },
+    {
+     "word": "nova",
+     "start": 9.34,
+     "end": 10.15
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 11.02,
+   "end": 12.13,
+   "text": "na base militar",
+   "words": [
+    {
+     "word": "na",
+     "start": 11.02,
+     "end": 11.14
+    },
+    {
+     "word": "base",
+     "start": 11.14,
+     "end": 11.42
+    },
+    {
+     "word": "militar",
+     "start": 11.42,
+     "end": 12.13
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 14.85,
+   "end": 16.48,
+   "text": "Tem casa bugada? Tem",
+   "words": [
+    {
+     "word": "Tem",
+     "start": 14.85,
+     "end": 15.05
+    },
+    {
+     "word": "casa",
+     "start": 15.05,
+     "end": 15.37
+    },
+    {
+     "word": "bugada?",
+     "start": 15.37,
+     "end": 15.89
+    },
+    {
+     "word": "Tem",
+     "start": 16.03,
+     "end": 16.48
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 16.94,
+   "end": 18.31,
+   "text": "a gente vai consertar",
+   "words": [
+    {
+     "word": "a",
+     "start": 16.94,
+     "end": 17.08
+    },
+    {
+     "word": "gente",
+     "start": 17.08,
+     "end": 17.18
+    },
+    {
+     "word": "vai",
+     "start": 17.18,
+     "end": 17.34
+    },
+    {
+     "word": "consertar",
+     "start": 17.34,
+     "end": 18.31
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 18.41,
+   "end": 20.18,
+   "text": "Tem pedra voando? Tem",
+   "words": [
+    {
+     "word": "Tem",
+     "start": 18.41,
+     "end": 18.61
+    },
+    {
+     "word": "pedra",
+     "start": 18.61,
+     "end": 18.97
+    },
+    {
+     "word": "voando?",
+     "start": 18.97,
+     "end": 19.41
+    },
+    {
+     "word": "Tem",
+     "start": 19.59,
+     "end": 20.18
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 21.51,
+   "end": 23.05,
+   "text": "Toma, olha isso aqui",
+   "words": [
+    {
+     "word": "Toma,",
+     "start": 21.51,
+     "end": 21.79
+    },
+    {
+     "word": "olha",
+     "start": 22.33,
+     "end": 22.55
+    },
+    {
+     "word": "isso",
+     "start": 22.55,
+     "end": 22.73
+    },
+    {
+     "word": "aqui",
+     "start": 22.73,
+     "end": 23.05
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 23.09,
+   "end": 24.05,
+   "text": "mano, tudo bem",
+   "words": [
+    {
+     "word": "mano,",
+     "start": 23.09,
+     "end": 23.23
+    },
+    {
+     "word": "tudo",
+     "start": 23.47,
+     "end": 23.63
+    },
+    {
+     "word": "bem",
+     "start": 23.63,
+     "end": 24.05
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 24.09,
+   "end": 25.02,
+   "text": "vamos ajeitar",
+   "words": [
+    {
+     "word": "vamos",
+     "start": 24.09,
+     "end": 24.23
+    },
+    {
+     "word": "ajeitar",
+     "start": 24.23,
+     "end": 25.02
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 31.61,
+   "end": 32.27,
+   "text": "Vamos ver como é que tá",
+   "words": [
+    {
+     "word": "Vamos",
+     "start": 31.61,
+     "end": 31.75
+    },
+    {
+     "word": "ver",
+     "start": 31.75,
+     "end": 31.95
+    },
+    {
+     "word": "como",
+     "start": 31.95,
+     "end": 32.11
+    },
+    {
+     "word": "é",
+     "start": 32.11,
+     "end": 32.17
+    },
+    {
+     "word": "que",
+     "start": 32.17,
+     "end": 32.22
+    },
+    {
+     "word": "tá",
+     "start": 32.22,
+     "end": 32.27
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 32.31,
+   "end": 33.17,
+   "text": "a entrada da base",
+   "words": [
+    {
+     "word": "a",
+     "start": 32.31,
+     "end": 32.53
+    },
+    {
+     "word": "entrada",
+     "start": 32.53,
+     "end": 32.68
+    },
+    {
+     "word": "da",
+     "start": 32.68,
+     "end": 32.75
+    },
+    {
+     "word": "base",
+     "start": 32.75,
+     "end": 33.17
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 33.21,
+   "end": 33.94,
+   "text": "área militar",
+   "words": [
+    {
+     "word": "área",
+     "start": 33.21,
+     "end": 33.35
+    },
+    {
+     "word": "militar",
+     "start": 33.35,
+     "end": 33.94
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 47.84,
+   "end": 49.46,
+   "text": "Beleza, ó, ficou legal",
+   "words": [
+    {
+     "word": "Beleza,",
+     "start": 47.84,
+     "end": 48.24
+    },
+    {
+     "word": "ó,",
+     "start": 48.64,
+     "end": 48.7
+    },
+    {
+     "word": "ficou",
+     "start": 48.84,
+     "end": 49.0
+    },
+    {
+     "word": "legal",
+     "start": 49.0,
+     "end": 49.46
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 49.5,
+   "end": 50.95,
+   "text": "essa área militar nova",
+   "words": [
+    {
+     "word": "essa",
+     "start": 49.5,
+     "end": 49.7
+    },
+    {
+     "word": "área",
+     "start": 49.7,
+     "end": 49.88
+    },
+    {
+     "word": "militar",
+     "start": 49.88,
+     "end": 50.22
+    },
+    {
+     "word": "nova",
+     "start": 50.22,
+     "end": 50.95
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 51.64,
+   "end": 53.52,
+   "text": "Já botei pra 25 pessoas, tá?",
+   "words": [
+    {
+     "word": "Já",
+     "start": 51.64,
+     "end": 51.8
+    },
+    {
+     "word": "botei",
+     "start": 51.8,
+     "end": 52.14
+    },
+    {
+     "word": "pra",
+     "start": 52.14,
+     "end": 52.22
+    },
+    {
+     "word": "25",
+     "start": 52.22,
+     "end": 52.56
+    },
+    {
+     "word": "pessoas,",
+     "start": 52.56,
+     "end": 53.04
+    },
+    {
+     "word": "tá?",
+     "start": 53.22,
+     "end": 53.52
+    }
+   ],
+   "pos": 0.76
+  }
+ ]
+}

@@ -1,0 +1,317 @@
+{
+ "segments": [
+  {
+   "start": 3.31,
+   "end": 8.03,
+   "text": "E aí, agora sim, né?",
+   "words": [
+    {
+     "word": "E",
+     "start": 3.31,
+     "end": 3.53
+    },
+    {
+     "word": "aí,",
+     "start": 3.53,
+     "end": 3.69
+    },
+    {
+     "word": "agora",
+     "start": 5.1,
+     "end": 6.1
+    },
+    {
+     "word": "sim,",
+     "start": 7.14,
+     "end": 7.58
+    },
+    {
+     "word": "né?",
+     "start": 7.7,
+     "end": 8.03
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 11.02,
+   "end": 12.43,
+   "text": "Irmão, se você falar",
+   "words": [
+    {
+     "word": "Irmão,",
+     "start": 11.02,
+     "end": 11.44
+    },
+    {
+     "word": "se",
+     "start": 11.89,
+     "end": 11.99
+    },
+    {
+     "word": "você",
+     "start": 11.99,
+     "end": 12.19
+    },
+    {
+     "word": "falar",
+     "start": 12.19,
+     "end": 12.43
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 12.47,
+   "end": 14.05,
+   "text": "que não tá à la caralho",
+   "words": [
+    {
+     "word": "que",
+     "start": 12.47,
+     "end": 12.59
+    },
+    {
+     "word": "não",
+     "start": 12.59,
+     "end": 12.71
+    },
+    {
+     "word": "tá",
+     "start": 12.71,
+     "end": 12.85
+    },
+    {
+     "word": "à",
+     "start": 12.85,
+     "end": 13.07
+    },
+    {
+     "word": "la",
+     "start": 13.07,
+     "end": 13.61
+    },
+    {
+     "word": "caralho",
+     "start": 13.61,
+     "end": 14.05
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 14.09,
+   "end": 14.91,
+   "text": "vocês estão de sacanagem",
+   "words": [
+    {
+     "word": "vocês",
+     "start": 14.09,
+     "end": 14.15
+    },
+    {
+     "word": "estão",
+     "start": 14.15,
+     "end": 14.27
+    },
+    {
+     "word": "de",
+     "start": 14.27,
+     "end": 14.35
+    },
+    {
+     "word": "sacanagem",
+     "start": 14.35,
+     "end": 14.91
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 14.95,
+   "end": 15.55,
+   "text": "velho",
+   "words": [
+    {
+     "word": "velho",
+     "start": 14.95,
+     "end": 15.55
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 19.99,
+   "end": 21.01,
+   "text": "Pô, eu vou trocar o short",
+   "words": [
+    {
+     "word": "Pô,",
+     "start": 19.99,
+     "end": 20.31
+    },
+    {
+     "word": "eu",
+     "start": 20.35,
+     "end": 20.41
+    },
+    {
+     "word": "vou",
+     "start": 20.41,
+     "end": 20.49
+    },
+    {
+     "word": "trocar",
+     "start": 20.49,
+     "end": 20.71
+    },
+    {
+     "word": "o",
+     "start": 20.71,
+     "end": 20.83
+    },
+    {
+     "word": "short",
+     "start": 20.83,
+     "end": 21.01
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 21.05,
+   "end": 21.73,
+   "text": "pra vocês verem",
+   "words": [
+    {
+     "word": "pra",
+     "start": 21.05,
+     "end": 21.15
+    },
+    {
+     "word": "vocês",
+     "start": 21.15,
+     "end": 21.29
+    },
+    {
+     "word": "verem",
+     "start": 21.29,
+     "end": 21.73
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 21.77,
+   "end": 22.79,
+   "text": "tem até o short aqui",
+   "words": [
+    {
+     "word": "tem",
+     "start": 21.77,
+     "end": 21.91
+    },
+    {
+     "word": "até",
+     "start": 21.91,
+     "end": 22.07
+    },
+    {
+     "word": "o",
+     "start": 22.07,
+     "end": 22.19
+    },
+    {
+     "word": "short",
+     "start": 22.19,
+     "end": 22.49
+    },
+    {
+     "word": "aqui",
+     "start": 22.49,
+     "end": 22.79
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 22.83,
+   "end": 23.58,
+   "text": "calma aí",
+   "words": [
+    {
+     "word": "calma",
+     "start": 22.83,
+     "end": 23.03
+    },
+    {
+     "word": "aí",
+     "start": 23.03,
+     "end": 23.58
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 44.03,
+   "end": 46.7,
+   "text": "Fala aí, fala aí",
+   "words": [
+    {
+     "word": "Fala",
+     "start": 44.03,
+     "end": 44.11
+    },
+    {
+     "word": "aí,",
+     "start": 44.11,
+     "end": 44.35
+    },
+    {
+     "word": "fala",
+     "start": 44.45,
+     "end": 44.61
+    },
+    {
+     "word": "aí",
+     "start": 46.19,
+     "end": 46.7
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 47.48,
+   "end": 48.69,
+   "text": "não tá à la caralho?",
+   "words": [
+    {
+     "word": "não",
+     "start": 47.48,
+     "end": 47.62
+    },
+    {
+     "word": "tá",
+     "start": 47.62,
+     "end": 47.78
+    },
+    {
+     "word": "à",
+     "start": 47.78,
+     "end": 47.9
+    },
+    {
+     "word": "la",
+     "start": 47.9,
+     "end": 47.96
+    },
+    {
+     "word": "caralho?",
+     "start": 47.96,
+     "end": 48.69
+    }
+   ],
+   "pos": 0.76
+  }
+ ]
+}
