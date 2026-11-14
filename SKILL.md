@@ -110,6 +110,10 @@ Critérios de um corte viral:
      `titulo` é um nome curto do corte (não aparece no vídeo: a caixa amarela de título fica desligada, a não ser que o usuário peça `titulo_no_video: true`; aí: até ~35 caracteres, CAIXA ALTA, sem emoji). `formato`: vertical, horizontal ou ambos.
      Deixe sempre `"legenda": false` aqui: a legenda entra depois, no passo 4b (legenda inteligente revisada). `vocabulario` ajuda a transcrição a acertar nomes. Live em outra língua: `"idioma": "en"` etc.
      Um corte pode forçar o próprio layout: `"layout": "facecam", "facecam": {"x":0,"y":0,"w":512,"h":288}` (pixels do vídeo original), `"layout": "retrato"` ou `"layout": "blur"`.
+     **Automático em cada corte (não precisa pedir):**
+     - **Chamada de vídeo** (Ome.tv, Discord, FaceTime na tela): em cena de câmera (retrato), o robô acha a janela da chamada e usa o layout `chamada` — **quem está do outro lado em cima, o streamer embaixo**. Log: `CHAMADA na janela {...}`; conferência em `chamada_<id>.jpg`. Errou a janela: force `"layout": "chamada", "janela": {"x","y","w","h"}` (pixels do original) ou desligue com `"chamada": false`.
+     - **Câmera vazia**: trecho em que o streamer sai da câmera e ninguém fala é cortado sozinho (só tira pausa ≥1,2 s; nunca corta fala; não corta se sobrariam <8 s ou se a câmera ficou vazia em >60% do corte). Padrão ligado em `retrato`/`chamada`; no layout de jogo+webcam só com `"cortar_vazio": true` (desligue com `false`). Log: `CAMERA_VAZIA removido 22.6-41.9s (19.2s)`.
+     - Cada corte publica `corte_<id>.cena.json` (layout, janela, linha de presença `#`=na câmera `.`=fora, trechos removidos).
    - `publicacao.md`: por corte, título para YouTube/TikTok (≤70 caracteres, com gancho; emoji pode), descrição de 1-2 linhas com **crédito obrigatório** ("Créditos: <canal> – <link do canal>"), hashtags e ideia de thumbnail.
    - `postagem.json`: os textos no formato que o robô posta (detalhes em `POSTAR.md`). **Sempre crie**, mesmo sem a postagem configurada:
      ```json
@@ -126,6 +130,8 @@ Critérios de um corte viral:
 3. Baixe a Release e **confira 1-2 quadros de cada corte** (ffmpeg → png → Read) e os `facecam_<id>.jpg` (caixa amarela = webcam achada):
    - A caixa pegou só a webcam? Não ficou nenhuma frase por cima do vídeo (a menos que o usuário tenha pedido)?
    - Se errou a webcam: refaça só aquele corte com `facecam` manual (copie a caixa de outro corte da mesma live, que costuma ser igual) usando `inputs[so]=<id>`.
+   - Cena de chamada: os dois rostos aparecem (o de quem está na chamada em cima)? Se o streamer saiu da câmera, o trecho vazio sumiu?
+   - **Re-renderizou um corte que já tinha legenda?** Apague antes o `corte_<id>_limpo.mp4` antigo da Release (`gh api $R/releases/tags/<job> --jq '.assets[]|"\(.id) \(.name)"'` → `gh api -X DELETE $R/releases/assets/<id>`), senão o `legendar.yml` legenda o vídeo velho. E refaça a revisão da legenda: se a câmera vazia tirou um trecho, os tempos mudaram.
 4. Faça o passo 4b (legenda inteligente) antes de entregar — é o padrão; pule só se o usuário pedir corte sem legenda. Entregue com `SendUserFile` (os .mp4 + `publicacao.md`) e uma tabela curta: corte, tempo na live, por que é viral — e siga direto para o passo 5, sem perguntar.
 
 ## 4b. Legenda inteligente (padrão em todo corte)
