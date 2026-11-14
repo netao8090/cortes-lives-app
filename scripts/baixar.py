@@ -98,7 +98,7 @@ def resolver(url):
             sys.exit(f"ERRO_VOD_AINDA_NAO: o VOD da live de {slug} ainda não apareceu na Kick.")
         v = vids[0]
         uuid = (v.get("video") or {}).get("uuid")
-        extra = {"titulo": v.get("session_title"), "canal": slug,
+        extra = {"titulo": v.get("session_title"), "canal": slug, "inicio_vod": v.get("start_time") or v.get("created_at"),
                  "duracao": (v.get("duration") or 0) / 1000 or None, "m3u8": v.get("source")}
         print(f"canal kick {slug} -> VOD mais recente: {uuid} ({extra['titulo']})", flush=True)
         return (f"https://kick.com/{slug}/videos/{uuid}" if uuid else v.get("source")), extra
@@ -129,7 +129,7 @@ def cmd_audio(a):
     ini, fim = seg(a.inicio), seg(a.fim)
     meta = {"url_original": a.url, "url": url, "titulo": extra.get("titulo") or i.get("title"),
             "canal": extra.get("canal") or i.get("uploader") or i.get("channel"),
-            "duracao": i.get("duration") or extra.get("duracao"), "plataforma": plataforma(a.url), "ao_vivo_ainda": ao_vivo,
+            "duracao": i.get("duration") or extra.get("duracao"), "inicio_vod": extra.get("inicio_vod"), "plataforma": plataforma(a.url), "ao_vivo_ainda": ao_vivo,
             "offset": ini or 0.0}
     with open(os.path.join(pasta, "meta.json"), "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=1)
