@@ -115,6 +115,14 @@ def main():
                 if jan:
                     p2["layout"], p2["janela"] = "chamada", {k: jan[k] for k in ("x", "y", "w", "h")}
                     print(f"   corte {cid}: CHAMADA na janela {p2['janela']} -> chamada em cima, streamer embaixo", flush=True)
+            if p2.get("layout") == "chamada" and p2.get("janela") and "retrato_cx" not in c:
+                # janela atrás do streamer: a parte de baixo usa só o que fica acima dela (recorte estreito),
+                # então enquadra pelo rosto de quem está no estúdio
+                if cortar.geo_chamada(p2, sw, sh)[4] < sh:
+                    cxr = cena.rosto_acima(bruto, a, b, p2["janela"]["y"], fora=p2["janela"])
+                    if cxr is not None:
+                        p2["retrato_cx"] = cxr
+                        print(f"   corte {cid}: streamer enquadrado pelo rosto (x={cxr})", flush=True)
             info.update(layout=p2.get("layout"), janela=p2.get("janela"))
             # câmera vazia: padrão nas cenas de câmera (IRL); no layout de jogo+webcam só se pedir
             if p2.get("cortar_vazio", p2.get("layout") in ("retrato", "chamada")):

@@ -141,7 +141,15 @@ def geo_chamada(plano, sw, sh, W=1080, H=1920):
             if sem_janela and nx + 0.15 * cw <= cx <= nx + 0.85 * cw:
                 x0 = nx
                 break
-    return hc, hg, x0, cw
+    # ainda pega a janela (ela fica embaixo, atrás do streamer): usa só a parte de cima da cena,
+    # acima da janela, para quem está na chamada não aparecer duas vezes
+    ch = sh
+    sobra = min(x0 + cw, j["x"] + j["w"]) - max(x0, j["x"])
+    if sobra > 0.12 * cw and j["y"] >= 0.4 * sh:
+        ch = (j["y"] - 2) // 2 * 2
+        cw = min(int(ch * W / hg) // 2 * 2, sw)
+        x0 = max(0, min(sw - cw, cx - cw // 2))
+    return hc, hg, x0, cw, ch
 
 
 def regiao_principal(plano, sw, sh):
@@ -151,8 +159,8 @@ def regiao_principal(plano, sw, sh):
         x0, cw = geo_retrato(plano, sw, sh)
         return (x0, 0, cw, sh)
     if lay == "chamada" and plano.get("janela"):
-        _, _, x0, cw = geo_chamada(plano, sw, sh)
-        return (x0, 0, cw, sh)
+        _, _, x0, cw, ch = geo_chamada(plano, sw, sh)
+        return (x0, 0, cw, ch)
     if lay == "facecam" and plano.get("facecam"):
         f = plano["facecam"]
         return (f["x"], f["y"], f["w"], f["h"])
@@ -180,11 +188,11 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
         elif plano.get("layout") == "chamada" and plano.get("janela"):
             # chamada de vídeo: a pessoa do outro lado em cima, o streamer embaixo
             j = plano["janela"]
-            hc, hg, x0, cw = geo_chamada(plano, sw, sh, W, H)
+            hc, hg, x0, cw, ch = geo_chamada(plano, sw, sh, W, H)
             vf = (f"[0:v]crop={j['w']}:{j['h']}:{j['x']}:{j['y']},hqdn3d=1.5:1.5:3:3,"
                   f"scale={W}:{hc}:force_original_aspect_ratio=increase:flags=lanczos,"
                   f"crop={W}:{hc},unsharp=5:5:0.7:5:5:0[cam];"
-                  f"[0:v]crop={cw}:{sh}:{x0}:0,scale={W}:{hg}:flags=lanczos,unsharp=5:5:0.5:5:5:0[rua];"
+                  f"[0:v]crop={cw}:{ch}:{x0}:0,scale={W}:{hg}:flags=lanczos,unsharp=5:5:0.5:5:5:0[rua];"
                   f"[cam][rua]vstack[v0]")
             y_tit, y_leg = hc - 48, int(H * 0.72)
             topo_jogo = (hc + 20) / H

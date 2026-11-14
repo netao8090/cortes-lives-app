@@ -172,6 +172,31 @@ def _avaliar_janela(Ex, Ey, por_quadro, pessoa, r, xa, xb, nq):
     return (xa, r, w, h), nota
 
 
+def _ajustar_lados(Ex, caixa, raio=24):
+    """Encosta cada lateral na borda vertical de verdade da janela (a linha de cima pode passar um pouco
+    da janela) e entra 2 px para a moldura não aparecer."""
+    H, W = Ex.shape
+    x, y, w, h = [int(v) for v in caixa]
+    r0, r1 = y + 4, min(H, y + h) - 4
+    if r1 - r0 < 10:
+        return caixa
+    def med(c):
+        return float(np.median(Ex[r0:r1, c])) if 0 < c < W - 1 else 0.0
+    lados = []
+    for lado in (x, x + w):
+        if lado <= 1 or lado >= W - 2:
+            lados.append(lado); continue
+        cols = range(max(1, lado - raio), min(W - 1, lado + raio + 1))
+        c = max(cols, key=med)
+        lados.append(c if med(c) >= 40 and med(c) >= 2 * max(med(lado), 1) else lado)
+    xa, xb = lados
+    if 1 < xa < W - 2: xa += 2
+    if 1 < xb < W - 2: xb -= 2
+    if xb - xa < 0.5 * w:
+        return caixa
+    return (xa, y + 1, xb - xa, h - 1)
+
+
 def achar_chamada(video, ini, fim, n=14, debug=None):
     """Janela de chamada sobreposta (presa embaixo ou num canto de baixo) com uma pessoa dentro.
     Devolve {"x","y","w","h"} em pixels do vídeo original, ou None."""
@@ -219,6 +244,7 @@ def achar_chamada(video, ini, fim, n=14, debug=None):
                     melhor, nota_melhor = c
     if not melhor:
         return None
+    melhor = _ajustar_lados(Ex, melhor)
     k = sw / W
     x, y, w, h = [int(round(v * k)) for v in melhor]
     x, y = max(0, x), max(0, y)
@@ -340,6 +366,42 @@ def pessoa_principal(video, ini, fim, n=10):
     if vistos and len(cxs) >= 0.5 * vistos:
         return int(np.median(cxs))
     return None
+
+
+def rosto_acima(video, ini, fim, ate_y, fora=None, n=12):
+    """Centro horizontal (px do original) do rosto mais constante e maior acima da linha ate_y (px do original),
+    fora da caixa `fora` (a janela da chamada). Serve para enquadrar o streamer num recorte estreito. Ou None."""
+    import facecam
+    sw, sh = dimensoes(video)
+    passo = max((fim - ini) / n, 0.5)
+    frames = [f for _, f in quadros(video, ini, fim, 1.0 / passo)][:n]
+    if not frames:
+        return None
+    H, W = frames[0].shape[:2]
+    k = sw / W
+    lim = ate_y / k
+    achados = []
+    for i, x, y, w, h in facecam.rostos(frames):
+        cx, cy = x + w / 2, y + h / 2
+        if cy >= lim:
+            continue
+        if fora and fora["x"] / k <= cx <= (fora["x"] + fora["w"]) / k and cy >= fora["y"] / k:
+            continue
+        achados.append((i, cx, w * h))
+    if not achados:
+        return None
+    grupos = []  # agrupa pela posição: o mesmo rosto em vários quadros
+    for i, cx, a in sorted(achados, key=lambda t: t[1]):
+        if grupos and cx - grupos[-1][-1][1] <= 0.08 * W:
+            grupos[-1].append((i, cx, a))
+        else:
+            grupos.append([(i, cx, a)])
+    def nota(g):
+        return len({i for i, _, _ in g}) * float(np.sqrt(np.median([a for _, _, a in g])))
+    g = max(grupos, key=nota)
+    if len({i for i, _, _ in g}) < 0.3 * len(frames):
+        return None
+    return int(np.median([cx for _, cx, _ in g]) * k)
 
 
 def remapear_perto(t, manter):
