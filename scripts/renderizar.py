@@ -66,6 +66,15 @@ def main():
             except Exception as e:
                 print("   detector falhou:", e); r = None
             if r is None:
+                # sem rosto achado: se uma pessoa grande ocupa a câmera, é cena em tela cheia (retrato nela)
+                try:
+                    import cena
+                    cxp = cena.pessoa_principal(bruto, max(0, ini - base), fim - base)
+                except Exception as e:
+                    print("   detector de pessoas falhou:", e); cxp = None
+                if cxp is not None:
+                    r = {"metodo": "tela_cheia", "cx": cxp, "debug": None}
+            if r is None:
                 if geral is None:
                     try:
                         geral = facecam.detectar([b[4] for b in baixados]) or False
@@ -78,7 +87,7 @@ def main():
                 p2["layout"] = "facecam"; p2["facecam"] = {k: r[k] for k in ("x", "y", "w", "h")}
             else:
                 p2["layout"] = "blur"
-            if r:
+            if r and r.get("debug") is not None:
                 cv2.imwrite(os.path.join(saida, f"facecam_{cid}.jpg"), r["debug"])
             print(f"   corte {cid}: layout {p2['layout']} {p2.get('facecam', '')}", flush=True)
             planos[cid] = p2
@@ -86,10 +95,46 @@ def main():
     for c in plano["cortes"]:
         cid = str(c.get("id"))
         base_p = planos.get(cid, dict(plano))
-        for k in ("layout", "facecam", "zoom", "retrato_cx"):
+        for k in ("layout", "facecam", "zoom", "retrato_cx", "janela", "cortar_vazio", "chamada"):
             if k in c:
                 base_p[k] = c[k]
         planos[cid] = base_p
+
+    # 2b) cena: chamada de vídeo (enquadrar quem está do outro lado) e câmera vazia (cortar)
+    editados = {}
+    for c, ini, fim, base, bruto in baixados:
+        cid = str(c.get("id"))
+        p2 = planos[cid]
+        a, b = ini - base, fim - base
+        info = {"layout": p2.get("layout")}
+        try:
+            import cena
+            sw, sh = cortar.sondar(bruto)
+            if p2.get("layout") == "retrato" and not p2.get("janela") and p2.get("chamada", True):
+                jan = cena.achar_chamada(bruto, a, b, debug=os.path.join(saida, f"chamada_{cid}.jpg"))
+                if jan:
+                    p2["layout"], p2["janela"] = "chamada", {k: jan[k] for k in ("x", "y", "w", "h")}
+                    print(f"   corte {cid}: CHAMADA na janela {p2['janela']} -> chamada em cima, streamer embaixo", flush=True)
+            info.update(layout=p2.get("layout"), janela=p2.get("janela"))
+            # câmera vazia: padrão nas cenas de câmera (IRL); no layout de jogo+webcam só se pedir
+            if p2.get("cortar_vazio", p2.get("layout") in ("retrato", "chamada")):
+                reg = cortar.regiao_principal(p2, sw, sh)
+                if reg:
+                    falas = [(f["start"] - base, f["end"] - base) for f in trans if f["end"] > ini and f["start"] < fim]
+                    rem, linha = cena.tempo_morto(bruto, a, b, reg, falas)
+                    info["presenca"] = "".join("#" if ok else "." for _, ok in linha)
+                    if rem:
+                        ed = os.path.join(tmp, f"editado_{cid}.mp4")
+                        manter = cena.aplicar_cortes(bruto, a, b, rem, ed)
+                        editados[cid] = (ed, manter)
+                        info["removidos"] = [[round(x - a, 1), round(y - a, 1)] for x, y in rem]
+                        tot = sum(y - x for x, y in rem)
+                        print(f"   corte {cid}: CAMERA_VAZIA removido " +
+                              ", ".join(f"{x - a:.1f}-{y - a:.1f}s" for x, y in rem) + f" ({tot:.1f}s)", flush=True)
+        except Exception as e:
+            print(f"   análise de cena do corte {cid} falhou (segue sem): {e}", flush=True)
+        with open(os.path.join(saida, f"corte_{cid}.cena.json"), "w") as f:
+            json.dump(info, f, ensure_ascii=False)
 
     # 3) renderiza
     for c, ini, fim, base, bruto in baixados:
@@ -100,6 +145,16 @@ def main():
             for f in trans:
                 if f["end"] > ini - 1 and f["start"] < fim + 1:
                     g = dict(f); g["start"] -= base; g["end"] -= base; t2.append(g)
+            if cid in editados:  # trechos de câmera vazia já tirados: o vídeo editado começa no início do corte
+                import cena
+                bruto, manter = editados[cid]
+                c2["inicio"], c2["fim"] = 0.0, sum(y - x for x, y in manter)
+                t3 = []
+                for g in t2:
+                    s0, e0 = cena.remapear_perto(g["start"], manter), cena.remapear_perto(g["end"], manter)
+                    if e0 - s0 > 0.05:
+                        g = dict(g); g["start"], g["end"] = s0, e0; t3.append(g)
+                t2 = t3
             sw, sh = cortar.sondar(bruto)
             for fo in formatos:
                 print("   ok", cortar.render(bruto, c2, planos.get(cid, plano), t2, saida, fo, sw, sh), flush=True)

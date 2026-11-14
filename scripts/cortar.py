@@ -118,6 +118,47 @@ def gerar_ass(caminho, W, H, titulo, ws, y_legenda, y_titulo, dur, legenda=True)
         f.write("\n".join(L) + "\n")
 
 
+def geo_retrato(plano, sw, sh, W=1080, H=1920):
+    cw = min(int(sh * W / H) // 2 * 2, sw)
+    cx = int(plano.get("retrato_cx", sw // 2))
+    x0 = max(0, min(sw - cw, cx - cw // 2))
+    return x0, cw
+
+
+def geo_chamada(plano, sw, sh, W=1080, H=1920):
+    """Layout de chamada: janela da chamada em cima, streamer embaixo (recorte que evita a janela se der)."""
+    j = plano["janela"]
+    hc = int(min(max(W * j["h"] / max(j["w"], 1), 560), 900)) // 2 * 2
+    hg = H - hc
+    cw = min(int(sh * W / hg) // 2 * 2, sw)
+    cx = int(plano.get("retrato_cx", sw // 2))
+    x0 = max(0, min(sw - cw, cx - cw // 2))
+    # se o recorte do streamer pega a janela, tenta deslizar para o lado sem perder o streamer
+    if x0 < j["x"] + j["w"] and x0 + cw > j["x"]:
+        for nx in (j["x"] - cw, j["x"] + j["w"]):
+            nx = max(0, min(sw - cw, nx))
+            sem_janela = nx + cw <= j["x"] + 4 or nx >= j["x"] + j["w"] - 4
+            if sem_janela and nx + 0.15 * cw <= cx <= nx + 0.85 * cw:
+                x0 = nx
+                break
+    return hc, hg, x0, cw
+
+
+def regiao_principal(plano, sw, sh):
+    """Área (x, y, w, h) do vídeo original onde aparece o streamer, para achar câmera vazia."""
+    lay = plano.get("layout")
+    if lay == "retrato":
+        x0, cw = geo_retrato(plano, sw, sh)
+        return (x0, 0, cw, sh)
+    if lay == "chamada" and plano.get("janela"):
+        _, _, x0, cw = geo_chamada(plano, sw, sh)
+        return (x0, 0, cw, sh)
+    if lay == "facecam" and plano.get("facecam"):
+        f = plano["facecam"]
+        return (f["x"], f["y"], f["w"], f["h"])
+    return None
+
+
 def render(video, c, plano, trans, saida, fmt_out, sw, sh):
     ini, fim = seg(c["inicio"]), seg(c["fim"])
     dur = fim - ini
@@ -132,12 +173,21 @@ def render(video, c, plano, trans, saida, fmt_out, sw, sh):
         W, H = 1080, 1920
         if plano.get("layout") == "retrato":
             # câmera em tela cheia: recorte vertical centrado no streamer
-            cw = int(sh * W / H) // 2 * 2
-            cx = int(plano.get("retrato_cx", sw // 2))
-            x0 = max(0, min(sw - cw, cx - cw // 2))
+            x0, cw = geo_retrato(plano, sw, sh, W, H)
             vf = f"[0:v]crop={cw}:{sh}:{x0}:0,scale={W}:{H}:flags=lanczos,unsharp=5:5:0.5:5:5:0[v0]"
             y_tit, y_leg = 230, int(H * 0.72)
             topo_jogo = 0.12
+        elif plano.get("layout") == "chamada" and plano.get("janela"):
+            # chamada de vídeo: a pessoa do outro lado em cima, o streamer embaixo
+            j = plano["janela"]
+            hc, hg, x0, cw = geo_chamada(plano, sw, sh, W, H)
+            vf = (f"[0:v]crop={j['w']}:{j['h']}:{j['x']}:{j['y']},hqdn3d=1.5:1.5:3:3,"
+                  f"scale={W}:{hc}:force_original_aspect_ratio=increase:flags=lanczos,"
+                  f"crop={W}:{hc},unsharp=5:5:0.7:5:5:0[cam];"
+                  f"[0:v]crop={cw}:{sh}:{x0}:0,scale={W}:{hg}:flags=lanczos,unsharp=5:5:0.5:5:5:0[rua];"
+                  f"[cam][rua]vstack[v0]")
+            y_tit, y_leg = hc - 48, int(H * 0.72)
+            topo_jogo = (hc + 20) / H
         elif plano.get("layout") == "facecam" and plano.get("facecam"):
             fc = plano["facecam"]
             # altura da câmera segue o formato da janela da webcam (sem distorcer)
