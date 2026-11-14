@@ -1,0 +1,509 @@
+{
+ "segments": [
+  {
+   "start": 4.79,
+   "end": 5.75,
+   "text": "Eu falo três",
+   "words": [
+    {
+     "word": "Eu",
+     "start": 4.79,
+     "end": 5.15
+    },
+    {
+     "word": "falo",
+     "start": 5.15,
+     "end": 5.51
+    },
+    {
+     "word": "três",
+     "start": 5.51,
+     "end": 5.75
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 5.79,
+   "end": 8.22,
+   "text": "maravilhas do mundo",
+   "words": [
+    {
+     "word": "maravilhas",
+     "start": 5.79,
+     "end": 7.59
+    },
+    {
+     "word": "do",
+     "start": 7.71,
+     "end": 7.83
+    },
+    {
+     "word": "mundo",
+     "start": 7.83,
+     "end": 8.22
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 8.26,
+   "end": 9.27,
+   "text": "excelente tema",
+   "words": [
+    {
+     "word": "excelente",
+     "start": 8.26,
+     "end": 8.7
+    },
+    {
+     "word": "tema",
+     "start": 8.7,
+     "end": 9.27
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 11.74,
+   "end": 13.97,
+   "text": "esse aqui não fala quatro",
+   "words": [
+    {
+     "word": "esse",
+     "start": 11.74,
+     "end": 12.08
+    },
+    {
+     "word": "aqui",
+     "start": 12.08,
+     "end": 12.22
+    },
+    {
+     "word": "não",
+     "start": 12.22,
+     "end": 13.16
+    },
+    {
+     "word": "fala",
+     "start": 13.16,
+     "end": 13.42
+    },
+    {
+     "word": "quatro",
+     "start": 13.42,
+     "end": 13.97
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 14.56,
+   "end": 15.93,
+   "text": "— Esse⁠ aqui⁠ não⁠ fala⁠ quatro⁠",
+   "words": [
+    {
+     "word": "— Esse⁠",
+     "start": 14.56,
+     "end": 14.8
+    },
+    {
+     "word": "aqui⁠",
+     "start": 14.8,
+     "end": 14.92
+    },
+    {
+     "word": "não⁠",
+     "start": 14.92,
+     "end": 14.98
+    },
+    {
+     "word": "fala⁠",
+     "start": 14.98,
+     "end": 15.18
+    },
+    {
+     "word": "quatro⁠",
+     "start": 15.18,
+     "end": 15.93
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 16.33,
+   "end": 17.13,
+   "text": "Eles não sabem o que é",
+   "words": [
+    {
+     "word": "Eles",
+     "start": 16.33,
+     "end": 16.41
+    },
+    {
+     "word": "não",
+     "start": 16.41,
+     "end": 16.55
+    },
+    {
+     "word": "sabem",
+     "start": 16.55,
+     "end": 16.89
+    },
+    {
+     "word": "o",
+     "start": 16.89,
+     "end": 17.01
+    },
+    {
+     "word": "que",
+     "start": 17.01,
+     "end": 17.06
+    },
+    {
+     "word": "é",
+     "start": 17.06,
+     "end": 17.13
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 17.17,
+   "end": 18.31,
+   "text": "uma maravilha, viado",
+   "words": [
+    {
+     "word": "uma",
+     "start": 17.17,
+     "end": 17.27
+    },
+    {
+     "word": "maravilha,",
+     "start": 17.27,
+     "end": 17.81
+    },
+    {
+     "word": "viado",
+     "start": 18.01,
+     "end": 18.31
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 21.31,
+   "end": 22.25,
+   "text": "Porra, tá de sacanagem",
+   "words": [
+    {
+     "word": "Porra,",
+     "start": 21.31,
+     "end": 21.45
+    },
+    {
+     "word": "tá",
+     "start": 21.47,
+     "end": 21.53
+    },
+    {
+     "word": "de",
+     "start": 21.53,
+     "end": 21.61
+    },
+    {
+     "word": "sacanagem",
+     "start": 21.61,
+     "end": 22.25
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 22.29,
+   "end": 23.72,
+   "text": "não, ele fala quatro",
+   "words": [
+    {
+     "word": "não,",
+     "start": 22.29,
+     "end": 22.33
+    },
+    {
+     "word": "ele",
+     "start": 22.55,
+     "end": 22.71
+    },
+    {
+     "word": "fala",
+     "start": 22.71,
+     "end": 22.95
+    },
+    {
+     "word": "quatro",
+     "start": 22.95,
+     "end": 23.72
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 28.04,
+   "end": 30.5,
+   "text": "Vai, peraí, dá play, mano",
+   "words": [
+    {
+     "word": "Vai,",
+     "start": 28.04,
+     "end": 28.62
+    },
+    {
+     "word": "peraí,",
+     "start": 29.06,
+     "end": 29.46
+    },
+    {
+     "word": "dá",
+     "start": 29.7,
+     "end": 29.78
+    },
+    {
+     "word": "play,",
+     "start": 29.78,
+     "end": 30.0
+    },
+    {
+     "word": "mano",
+     "start": 30.34,
+     "end": 30.5
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 30.54,
+   "end": 31.81,
+   "text": "são sete maravilhas do mundo",
+   "words": [
+    {
+     "word": "são",
+     "start": 30.54,
+     "end": 30.74
+    },
+    {
+     "word": "sete",
+     "start": 30.74,
+     "end": 31.22
+    },
+    {
+     "word": "maravilhas",
+     "start": 31.22,
+     "end": 31.36
+    },
+    {
+     "word": "do",
+     "start": 31.36,
+     "end": 31.51
+    },
+    {
+     "word": "mundo",
+     "start": 31.51,
+     "end": 31.81
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 32.42,
+   "end": 33.11,
+   "text": "Pode botar um",
+   "words": [
+    {
+     "word": "Pode",
+     "start": 32.42,
+     "end": 32.56
+    },
+    {
+     "word": "botar",
+     "start": 32.56,
+     "end": 32.76
+    },
+    {
+     "word": "um",
+     "start": 32.76,
+     "end": 33.11
+    }
+   ],
+   "pos": 0.6
+  },
+  {
+   "start": 33.36,
+   "end": 33.98,
+   "text": "valendo!",
+   "words": [
+    {
+     "word": "valendo!",
+     "start": 33.36,
+     "end": 33.98
+    }
+   ],
+   "pos": 0.6
+  },
+  {
+   "start": 34.02,
+   "end": 34.77,
+   "text": "— Arco-íris!⁠",
+   "words": [
+    {
+     "word": "— Arco-íris!⁠",
+     "start": 34.02,
+     "end": 34.77
+    }
+   ],
+   "pos": 0.6
+  },
+  {
+   "start": 36.17,
+   "end": 40.56,
+   "text": "O pai tá bigode ou não tá?",
+   "words": [
+    {
+     "word": "O",
+     "start": 36.17,
+     "end": 37.25
+    },
+    {
+     "word": "pai",
+     "start": 38.58,
+     "end": 38.9
+    },
+    {
+     "word": "tá",
+     "start": 38.9,
+     "end": 39.06
+    },
+    {
+     "word": "bigode",
+     "start": 39.06,
+     "end": 39.8
+    },
+    {
+     "word": "ou",
+     "start": 39.8,
+     "end": 40.04
+    },
+    {
+     "word": "não",
+     "start": 40.04,
+     "end": 40.28
+    },
+    {
+     "word": "tá?",
+     "start": 40.28,
+     "end": 40.56
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 40.6,
+   "end": 42.75,
+   "text": "Caralho, viado!",
+   "words": [
+    {
+     "word": "Caralho,",
+     "start": 40.6,
+     "end": 41.78
+    },
+    {
+     "word": "viado!",
+     "start": 41.78,
+     "end": 42.75
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 42.84,
+   "end": 45.13,
+   "text": "— Ei,⁠ Cristiano⁠ Ronaldo⁠",
+   "words": [
+    {
+     "word": "— Ei,⁠",
+     "start": 42.84,
+     "end": 43.46
+    },
+    {
+     "word": "Cristiano⁠",
+     "start": 43.46,
+     "end": 44.02
+    },
+    {
+     "word": "Ronaldo⁠",
+     "start": 44.02,
+     "end": 45.13
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 45.17,
+   "end": 46.25,
+   "text": "vai⁠ meter⁠ aqui?⁠",
+   "words": [
+    {
+     "word": "vai⁠",
+     "start": 45.17,
+     "end": 45.47
+    },
+    {
+     "word": "meter⁠",
+     "start": 45.47,
+     "end": 45.97
+    },
+    {
+     "word": "aqui?⁠",
+     "start": 45.97,
+     "end": 46.25
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 46.29,
+   "end": 47.73,
+   "text": "Vai,⁠ Cristiano!⁠",
+   "words": [
+    {
+     "word": "Vai,⁠",
+     "start": 46.29,
+     "end": 46.99
+    },
+    {
+     "word": "Cristiano!⁠",
+     "start": 46.99,
+     "end": 47.73
+    }
+   ],
+   "pos": 0.76
+  },
+  {
+   "start": 47.77,
+   "end": 50.0,
+   "text": "Cristiano,⁠ Cristiano!⁠",
+   "words": [
+    {
+     "word": "Cristiano,⁠",
+     "start": 47.77,
+     "end": 48.71
+    },
+    {
+     "word": "Cristiano!⁠",
+     "start": 48.71,
+     "end": 50.0
+    }
+   ],
+   "pos": 0.76
+  }
+ ]
+}
